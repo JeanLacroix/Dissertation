@@ -1,0 +1,230 @@
+{
+  "spec": {
+    "name": "change_d",
+    "description": "Change C plus size-by-asset-type interactions.",
+    "exclude_asset_types": [
+      "Land",
+      "Niche"
+    ],
+    "exclude_country_groups": [],
+    "winsor_lower_quantile": 0.025,
+    "winsor_upper_quantile": 0.975,
+    "temporal_mode": "year_fe",
+    "use_size_asset_interactions": true,
+    "allow_year_built": true
+  },
+  "previous_spec": "change_c",
+  "training_sample_size": 686,
+  "rolling_origin": {
+    "strategy": "rolling_origin_expanding_window",
+    "folds": [
+      {
+        "fold": "fold_1",
+        "train_rows": 397,
+        "test_rows": 80,
+        "test_year": 2023,
+        "model_metrics": {
+          "mape_pct": 101.40767442770908,
+          "rmse_eur_mn": 53.13506980855752
+        },
+        "baseline_metrics": {
+          "mape_pct": 101.62247177416184,
+          "rmse_eur_mn": 46.44528837650426
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 0.2113679609467725,
+          "rmse_reduction_pct": -14.403573894994881
+        }
+      },
+      {
+        "fold": "fold_2",
+        "train_rows": 477,
+        "test_rows": 99,
+        "test_year": 2024,
+        "model_metrics": {
+          "mape_pct": 105.13985165958945,
+          "rmse_eur_mn": 78.88653697995898
+        },
+        "baseline_metrics": {
+          "mape_pct": 100.13009442871399,
+          "rmse_eur_mn": 68.7178294010975
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -5.003248283603768,
+          "rmse_reduction_pct": -14.797771797342401
+        }
+      },
+      {
+        "fold": "fold_3",
+        "train_rows": 576,
+        "test_rows": 93,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 70.02816749205607,
+          "rmse_eur_mn": 69.42268588999958
+        },
+        "baseline_metrics": {
+          "mape_pct": 83.81366658281006,
+          "rmse_eur_mn": 69.07605109409829
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 16.447793841752002,
+          "rmse_reduction_pct": -0.5018161727703492
+        }
+      },
+      {
+        "fold": "fold_4",
+        "train_rows": 669,
+        "test_rows": 17,
+        "test_year": 2026,
+        "model_metrics": {
+          "mape_pct": 74.11859756639983,
+          "rmse_eur_mn": 30.627036422681797
+        },
+        "baseline_metrics": {
+          "mape_pct": 63.1739778113332,
+          "rmse_eur_mn": 34.95079299727996
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -17.32456960008492,
+          "rmse_reduction_pct": 12.370982755483286
+        }
+      }
+    ],
+    "mean_mape_pct": 87.67357278643861,
+    "std_mape_pct": 15.722548511503412,
+    "mean_rmse_eur_mn": 58.01783227529947,
+    "std_rmse_eur_mn": 18.30075537217943,
+    "baseline_mean_mape_pct": 87.18505264925477,
+    "baseline_mean_rmse_eur_mn": 54.797490467245005,
+    "headline_fold": {
+      "fold": "fold_4",
+      "train_rows": 669,
+      "test_rows": 17,
+      "test_year": 2026,
+      "model_metrics": {
+        "mape_pct": 74.11859756639983,
+        "rmse_eur_mn": 30.627036422681797
+      },
+      "baseline_metrics": {
+        "mape_pct": 63.1739778113332,
+        "rmse_eur_mn": 34.95079299727996
+      },
+      "lift_vs_baseline": {
+        "mape_reduction_pct": -17.32456960008492,
+        "rmse_reduction_pct": 12.370982755483286
+      }
+    }
+  },
+  "random_5_fold": {
+    "strategy": "random_5_fold",
+    "folds": [
+      {
+        "fold": "random_fold_1",
+        "train_rows": 548,
+        "test_rows": 138,
+        "test_year": 2021,
+        "model_metrics": {
+          "mape_pct": 94.08801147593874,
+          "rmse_eur_mn": 92.39061091859041
+        },
+        "baseline_metrics": {
+          "mape_pct": 97.66264373005221,
+          "rmse_eur_mn": 78.69601596126222
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 3.66018378940678,
+          "rmse_reduction_pct": -17.401891048803915
+        }
+      },
+      {
+        "fold": "random_fold_2",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 76.69494886998089,
+          "rmse_eur_mn": 71.30329136051438
+        },
+        "baseline_metrics": {
+          "mape_pct": 75.18297283939302,
+          "rmse_eur_mn": 68.86301594119402
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -2.0110617783334797,
+          "rmse_reduction_pct": -3.54366619870998
+        }
+      },
+      {
+        "fold": "random_fold_3",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 94.67871217693352,
+          "rmse_eur_mn": 66.93686023203507
+        },
+        "baseline_metrics": {
+          "mape_pct": 93.96843215456279,
+          "rmse_eur_mn": 64.52121689279227
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -0.7558708877917956,
+          "rmse_reduction_pct": -3.7439519208954346
+        }
+      },
+      {
+        "fold": "random_fold_4",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2022,
+        "model_metrics": {
+          "mape_pct": 73.32490314042623,
+          "rmse_eur_mn": 81.93605038390618
+        },
+        "baseline_metrics": {
+          "mape_pct": 86.54549802478604,
+          "rmse_eur_mn": 82.60068667192336
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 15.275889776003742,
+          "rmse_reduction_pct": 0.8046377273557136
+        }
+      },
+      {
+        "fold": "random_fold_5",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 84.56744139948552,
+          "rmse_eur_mn": 143.87913473626864
+        },
+        "baseline_metrics": {
+          "mape_pct": 92.70630912626716,
+          "rmse_eur_mn": 142.73804175775027
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 8.779195076892124,
+          "rmse_reduction_pct": -0.799431577221014
+        }
+      }
+    ],
+    "mean_mape_pct": 84.67080341255298,
+    "std_mape_pct": 8.731511185588914,
+    "mean_rmse_eur_mn": 91.28918952626293,
+    "std_rmse_eur_mn": 27.73758729823971,
+    "baseline_mean_mape_pct": 89.21317117501225,
+    "baseline_mean_rmse_eur_mn": 87.48379544498444
+  },
+  "rsquared": 0.596865270706155,
+  "rsquared_adj": 0.5847409179454379,
+  "sign_flips_vs_previous": [
+    "C(primary_asset_type)[T.Mixed Use]",
+    "C(primary_asset_type)[T.Residential]",
+    "C(primary_asset_type)[T.Retail]"
+  ],
+  "implausibility_notes": [],
+  "headline_fold_mape_pct": 74.11859756639983,
+  "headline_fold_baseline_mape_pct": 63.1739778113332
+}

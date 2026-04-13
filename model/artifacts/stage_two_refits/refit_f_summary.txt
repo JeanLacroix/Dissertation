@@ -1,0 +1,31 @@
+                             OLS Regression Results                             
+================================================================================
+Dep. Variable:     log_deal_size_eur_mn   R-squared:                       0.535
+Model:                              OLS   Adj. R-squared:                  0.507
+Method:                   Least Squares   F-statistic:                     19.36
+Date:                  Mon, 13 Apr 2026   Prob (F-statistic):           4.78e-17
+Time:                          21:37:31   Log-Likelihood:                -160.87
+No. Observations:                   126   AIC:                             337.7
+Df Residuals:                       118   BIC:                             360.4
+Df Model:                             7                                         
+Covariance Type:              nonrobust                                         
+====================================================================================================
+                                       coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------------------------
+Intercept                           -4.2828      0.773     -5.543      0.000      -5.813      -2.753
+C(country_group)[T.France]           0.8412      0.275      3.058      0.003       0.297       1.386
+C(country_group)[T.Other Europe]     0.6319      0.227      2.782      0.006       0.182       1.082
+C(model_year_effect)[T.2022]         0.0711      0.205      0.348      0.729      -0.334       0.476
+C(model_year_effect)[T.2023]         0.0567      0.280      0.203      0.840      -0.498       0.611
+C(model_year_effect)[T.2024]        -0.5240      0.247     -2.121      0.036      -1.013      -0.035
+C(model_year_effect)[T.2025]         0.1477      0.320      0.462      0.645      -0.485       0.781
+log_total_size_sqm                   0.8175      0.083      9.822      0.000       0.653       0.982
+==============================================================================
+Omnibus:                        2.441   Durbin-Watson:                   1.946
+Prob(Omnibus):                  0.295   Jarque-Bera (JB):                2.167
+Skew:                          -0.101   Prob(JB):                        0.338
+Kurtosis:                       3.610   Cond. No.                         90.8
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

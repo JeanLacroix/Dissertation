@@ -1,0 +1,229 @@
+{
+  "spec": {
+    "name": "change_a",
+    "description": "Drop Land and Niche observations from the sample.",
+    "exclude_asset_types": [
+      "Land",
+      "Niche"
+    ],
+    "exclude_country_groups": [],
+    "winsor_lower_quantile": 0.01,
+    "winsor_upper_quantile": 0.99,
+    "temporal_mode": "index",
+    "use_size_asset_interactions": false,
+    "allow_year_built": true
+  },
+  "previous_spec": "baseline",
+  "training_sample_size": 686,
+  "rolling_origin": {
+    "strategy": "rolling_origin_expanding_window",
+    "folds": [
+      {
+        "fold": "fold_1",
+        "train_rows": 397,
+        "test_rows": 80,
+        "test_year": 2023,
+        "model_metrics": {
+          "mape_pct": 106.77003579756479,
+          "rmse_eur_mn": 55.581148674264696
+        },
+        "baseline_metrics": {
+          "mape_pct": 114.89259427986582,
+          "rmse_eur_mn": 50.53620705840722
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 7.0696971664817365,
+          "rmse_reduction_pct": -9.982825996471764
+        }
+      },
+      {
+        "fold": "fold_2",
+        "train_rows": 477,
+        "test_rows": 99,
+        "test_year": 2024,
+        "model_metrics": {
+          "mape_pct": 139.56926031440983,
+          "rmse_eur_mn": 84.37138365988767
+        },
+        "baseline_metrics": {
+          "mape_pct": 114.91238092042641,
+          "rmse_eur_mn": 77.72100041074413
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -21.457112972933363,
+          "rmse_reduction_pct": -8.556739123270725
+        }
+      },
+      {
+        "fold": "fold_3",
+        "train_rows": 576,
+        "test_rows": 93,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 76.03898267889288,
+          "rmse_eur_mn": 69.52441131502658
+        },
+        "baseline_metrics": {
+          "mape_pct": 87.68983185979354,
+          "rmse_eur_mn": 70.49206027114325
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 13.286431201657564,
+          "rmse_reduction_pct": 1.372706305355045
+        }
+      },
+      {
+        "fold": "fold_4",
+        "train_rows": 669,
+        "test_rows": 17,
+        "test_year": 2026,
+        "model_metrics": {
+          "mape_pct": 68.96090500966055,
+          "rmse_eur_mn": 33.466139449022194
+        },
+        "baseline_metrics": {
+          "mape_pct": 63.342142465598464,
+          "rmse_eur_mn": 35.4201638846954
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -8.870496521511999,
+          "rmse_reduction_pct": 5.516700718930083
+        }
+      }
+    ],
+    "mean_mape_pct": 97.83479595013202,
+    "std_mape_pct": 27.97482386495619,
+    "mean_rmse_eur_mn": 60.73577077455028,
+    "std_rmse_eur_mn": 18.74890210547144,
+    "baseline_mean_mape_pct": 95.20923738142106,
+    "baseline_mean_rmse_eur_mn": 58.5423579062475,
+    "headline_fold": {
+      "fold": "fold_4",
+      "train_rows": 669,
+      "test_rows": 17,
+      "test_year": 2026,
+      "model_metrics": {
+        "mape_pct": 68.96090500966055,
+        "rmse_eur_mn": 33.466139449022194
+      },
+      "baseline_metrics": {
+        "mape_pct": 63.342142465598464,
+        "rmse_eur_mn": 35.4201638846954
+      },
+      "lift_vs_baseline": {
+        "mape_reduction_pct": -8.870496521511999,
+        "rmse_reduction_pct": 5.516700718930083
+      }
+    }
+  },
+  "random_5_fold": {
+    "strategy": "random_5_fold",
+    "folds": [
+      {
+        "fold": "random_fold_1",
+        "train_rows": 548,
+        "test_rows": 138,
+        "test_year": 2021,
+        "model_metrics": {
+          "mape_pct": 107.09938827321734,
+          "rmse_eur_mn": 93.78395809051423
+        },
+        "baseline_metrics": {
+          "mape_pct": 106.44142428455972,
+          "rmse_eur_mn": 78.89323121534424
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -0.6181465468731716,
+          "rmse_reduction_pct": -18.874530356761245
+        }
+      },
+      {
+        "fold": "random_fold_2",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 75.94787025647426,
+          "rmse_eur_mn": 69.5129196973522
+        },
+        "baseline_metrics": {
+          "mape_pct": 75.3750330682994,
+          "rmse_eur_mn": 71.79952906057808
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -0.7599826691363373,
+          "rmse_reduction_pct": 3.1847135951221075
+        }
+      },
+      {
+        "fold": "random_fold_3",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 99.34783826901027,
+          "rmse_eur_mn": 67.18527091071991
+        },
+        "baseline_metrics": {
+          "mape_pct": 97.40910204940012,
+          "rmse_eur_mn": 65.84722259402649
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": -1.9903029376319856,
+          "rmse_reduction_pct": -2.0320497417833407
+        }
+      },
+      {
+        "fold": "random_fold_4",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2022,
+        "model_metrics": {
+          "mape_pct": 78.0954325495572,
+          "rmse_eur_mn": 85.1791362670403
+        },
+        "baseline_metrics": {
+          "mape_pct": 93.24854545727149,
+          "rmse_eur_mn": 83.76108571094967
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 16.25024050874635,
+          "rmse_reduction_pct": -1.6929706009114673
+        }
+      },
+      {
+        "fold": "random_fold_5",
+        "train_rows": 549,
+        "test_rows": 137,
+        "test_year": 2025,
+        "model_metrics": {
+          "mape_pct": 91.32235748182778,
+          "rmse_eur_mn": 150.45426709506128
+        },
+        "baseline_metrics": {
+          "mape_pct": 100.65051614700724,
+          "rmse_eur_mn": 146.8569066969132
+        },
+        "lift_vs_baseline": {
+          "mape_reduction_pct": 9.26786967645056,
+          "rmse_reduction_pct": -2.44956841258573
+        }
+      }
+    ],
+    "mean_mape_pct": 90.36257736601736,
+    "std_mape_pct": 12.000362942101743,
+    "mean_rmse_eur_mn": 93.22311041213759,
+    "std_rmse_eur_mn": 30.267367229621335,
+    "baseline_mean_mape_pct": 94.62492420130759,
+    "baseline_mean_rmse_eur_mn": 89.43159505556233
+  },
+  "rsquared": 0.5720881672539366,
+  "rsquared_adj": 0.5644582385868449,
+  "sign_flips_vs_previous": [],
+  "implausibility_notes": [
+    "log(index_value) coefficient 0.145 lies outside the 0.3 to 2.0 sanity range.",
+    "log(index_value) is statistically insignificant (p=0.698)."
+  ],
+  "headline_fold_mape_pct": 68.96090500966055,
+  "headline_fold_baseline_mape_pct": 63.342142465598464
+}

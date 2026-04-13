@@ -1,0 +1,17 @@
+{
+  "sample_size_after_uk_exclusion": 287,
+  "rolling_fold_mapes_pct": [
+    136.0399202394751,
+    152.54829002965843,
+    71.80384615496347,
+    23.581426518655192
+  ],
+  "rolling_mean_mape_pct": 95.99337073568805,
+  "headline_fold_mape_pct": 23.581426518655192,
+  "headline_fold_baseline_mape_pct": 17.431978800763698,
+  "random_5_fold_mean_mape_pct": 103.07504621083149,
+  "rsquared": 0.579631168107698,
+  "rsquared_adj": 0.5497172811940136,
+  "pooled_french_test_mape_pct": 81.01250787031859,
+  "coefficient_table_path": "model/artifacts/stage_two_refits/refit_e_coefficients.csv"
+}

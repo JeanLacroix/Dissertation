@@ -1,0 +1,727 @@
+asset_type,country,transaction_year,size_bucket,size_bucket_order,price_bucket,price_bucket_order,price_per_sqm_bucket,price_per_sqm_bucket_order
+Office,Other Europe,2026,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2026,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2026,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,Netherlands,2026,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2026,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2026,"100,000+ sqm",7,250-500 EUR mn,6,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2026,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,Netherlands,2026,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2026,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2026,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2026,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2026,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Retail,Spain,2026,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Mixed Use,United Kingdom,2026,"1,000-2,500 sqm",1,25-50 EUR mn,3,"25,000+ EUR/sqm",8
+Retail,Other Europe,2026,"50,000-100,000 sqm",6,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2026,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2026,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Land,Other Europe,2026,"100,000+ sqm",7,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Niche,France,2026,"10,000-25,000 sqm",4,250-500 EUR mn,6,"25,000+ EUR/sqm",8
+Industrial,Other Europe,2025,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Retail,Other Europe,2025,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Hotel,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2025,"2,500-5,000 sqm",2,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Spain,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Land,United Kingdom,2025,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,Germany,2025,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2025,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Retail,Germany,2025,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Retail,Other Europe,2025,"100,000+ sqm",7,100-250 EUR mn,5,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,250-500 EUR mn,6,"25,000+ EUR/sqm",8
+Retail,United Kingdom,2025,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2025,"0-1,000 sqm",0,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2025,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Retail,Other Europe,2025,"100,000+ sqm",7,"500-1,000 EUR mn",7,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2025,"1,000-2,500 sqm",1,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Retail,Other Europe,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2025,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2025,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2025,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2025,"0-1,000 sqm",0,10-25 EUR mn,2,"25,000+ EUR/sqm",8
+Industrial,United Kingdom,2025,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Office,Spain,2025,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Hotel,Germany,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2025,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Mixed Use,United Kingdom,2025,"2,500-5,000 sqm",2,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Mixed Use,Netherlands,2025,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2025,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Niche,United Kingdom,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2025,"1,000-2,500 sqm",1,10-25 EUR mn,2,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Retail,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Niche,United Kingdom,2025,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2025,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Spain,2025,"25,000-50,000 sqm",5,250-500 EUR mn,6,"7,500-10,000 EUR/sqm",5
+Hotel,United Kingdom,2025,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,Germany,2025,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Niche,Netherlands,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2025,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,Netherlands,2025,"0-1,000 sqm",0,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2025,"1,000-2,500 sqm",1,5-10 EUR mn,1,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2025,"2,500-5,000 sqm",2,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Retail,Netherlands,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,Netherlands,2025,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2025,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Mixed Use,Spain,2025,"2,500-5,000 sqm",2,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Mixed Use,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2025,"2,500-5,000 sqm",2,50-100 EUR mn,4,"25,000+ EUR/sqm",8
+Industrial,Germany,2025,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,Other Europe,2025,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,Spain,2025,"50,000-100,000 sqm",6,250-500 EUR mn,6,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Retail,Spain,2025,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2025,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2025,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2025,"1,000-2,500 sqm",1,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Retail,United Kingdom,2025,"2,500-5,000 sqm",2,50-100 EUR mn,4,"25,000+ EUR/sqm",8
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2025,"50,000-100,000 sqm",6,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2025,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2025,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,Netherlands,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2025,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2025,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2025,"2,500-5,000 sqm",2,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2025,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2025,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,Netherlands,2025,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,Germany,2025,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2025,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,France,2025,"50,000-100,000 sqm",6,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,Other Europe,2025,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Mixed Use,Netherlands,2024,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2024,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,Netherlands,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2024,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2024,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2024,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,Other Europe,2024,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,Other Europe,2024,"50,000-100,000 sqm",6,250-500 EUR mn,6,"3,000-5,000 EUR/sqm",3
+Land,United Kingdom,2024,"50,000-100,000 sqm",6,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Residential,Spain,2024,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,France,2024,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2024,"1,000-2,500 sqm",1,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,Other Europe,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,Germany,2024,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2024,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Niche,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2024,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Niche,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2024,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Industrial,France,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,Other Europe,2024,"100,000+ sqm",7,250-500 EUR mn,6,"3,000-5,000 EUR/sqm",3
+Retail,Other Europe,2024,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2024,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2024,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2024,"0-1,000 sqm",0,5-10 EUR mn,1,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2024,"1,000-2,500 sqm",1,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,Netherlands,2024,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2024,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,Netherlands,2024,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,Netherlands,2024,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,Spain,2024,"0-1,000 sqm",0,25-50 EUR mn,3,"25,000+ EUR/sqm",8
+Office,Other Europe,2024,"1,000-2,500 sqm",1,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"2,500-5,000 sqm",2,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Office,Netherlands,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2024,"2,500-5,000 sqm",2,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Mixed Use,Other Europe,2024,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2024,"10,000-25,000 sqm",4,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Retail,Germany,2024,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2024,"10,000-25,000 sqm",4,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Land,United Kingdom,2024,"100,000+ sqm",7,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Office,Netherlands,2024,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,Netherlands,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2024,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2024,"1,000-2,500 sqm",1,10-25 EUR mn,2,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2024,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Netherlands,2024,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2024,"50,000-100,000 sqm",6,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Residential,Spain,2024,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2024,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Hotel,France,2024,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2024,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,France,2024,"5,000-10,000 sqm",3,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Industrial,Germany,2024,"50,000-100,000 sqm",6,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Industrial,Netherlands,2024,"25,000-50,000 sqm",5,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Retail,Other Europe,2024,"10,000-25,000 sqm",4,"500-1,000 EUR mn",7,"25,000+ EUR/sqm",8
+Office,United Kingdom,2024,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Hotel,France,2024,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Mixed Use,United Kingdom,2024,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Retail,Spain,2024,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2024,"50,000-100,000 sqm",6,250-500 EUR mn,6,"5,000-7,500 EUR/sqm",4
+Industrial,France,2024,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2024,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2024,"5,000-10,000 sqm",3,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2024,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Office,Other Europe,2024,"10,000-25,000 sqm",4,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Retail,France,2024,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,Other Europe,2024,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,250-500 EUR mn,6,"15,000-25,000 EUR/sqm",7
+Office,Other Europe,2024,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2024,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2024,"1,000-2,500 sqm",1,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2024,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,Netherlands,2024,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Industrial,Netherlands,2024,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,Germany,2024,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2024,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2024,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2024,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2023,"2,500-5,000 sqm",2,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Industrial,Germany,2023,"25,000-50,000 sqm",5,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Niche,Spain,2023,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Residential,Spain,2023,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2023,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2023,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,Netherlands,2023,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2023,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Mixed Use,Netherlands,2023,"1,000-2,500 sqm",1,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,Netherlands,2023,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,Germany,2023,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2023,"10,000-25,000 sqm",4,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2023,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2023,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,Netherlands,2023,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,Netherlands,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,France,2023,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Niche,United Kingdom,2023,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,Germany,2023,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2023,"0-1,000 sqm",0,5-10 EUR mn,1,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2023,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2023,"1,000-2,500 sqm",1,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2023,"0-1,000 sqm",0,10-25 EUR mn,2,"25,000+ EUR/sqm",8
+Mixed Use,United Kingdom,2023,"1,000-2,500 sqm",1,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,France,2023,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Office,France,2023,"0-1,000 sqm",0,5-10 EUR mn,1,"25,000+ EUR/sqm",8
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Mixed Use,United Kingdom,2023,"5,000-10,000 sqm",3,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Industrial,France,2023,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,France,2023,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Office,France,2023,"2,500-5,000 sqm",2,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Industrial,United Kingdom,2023,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,Netherlands,2023,"5,000-10,000 sqm",3,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Niche,France,2023,"1,000-2,500 sqm",1,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2023,"2,500-5,000 sqm",2,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Niche,Spain,2023,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2023,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2023,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2023,"2,500-5,000 sqm",2,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2023,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2023,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2023,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2023,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Netherlands,2023,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2023,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2023,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Niche,United Kingdom,2023,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2023,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,France,2023,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Mixed Use,United Kingdom,2023,"1,000-2,500 sqm",1,50-100 EUR mn,4,"25,000+ EUR/sqm",8
+Office,Other Europe,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2023,"0-1,000 sqm",0,0-5 EUR mn,0,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2023,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Residential,United Kingdom,2023,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2023,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2023,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2023,"25,000-50,000 sqm",5,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2023,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2023,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Hotel,Spain,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2023,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2023,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Hotel,Spain,2023,"1,000-2,500 sqm",1,50-100 EUR mn,4,"25,000+ EUR/sqm",8
+Retail,United Kingdom,2023,"1,000-2,500 sqm",1,5-10 EUR mn,1,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2023,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Residential,Spain,2023,"2,500-5,000 sqm",2,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Mixed Use,United Kingdom,2023,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Niche,Spain,2023,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2023,"2,500-5,000 sqm",2,10-25 EUR mn,2,"7,500-10,000 EUR/sqm",5
+Office,France,2023,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Industrial,Spain,2023,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Netherlands,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,Spain,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Residential,Spain,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Mixed Use,Netherlands,2022,"50,000-100,000 sqm",6,"500-1,000 EUR mn",7,"7,500-10,000 EUR/sqm",5
+Mixed Use,Netherlands,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2022,"50,000-100,000 sqm",6,250-500 EUR mn,6,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,Spain,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Netherlands,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"5,000-7,500 EUR/sqm",4
+Hotel,Germany,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,Other Europe,2022,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Residential,Spain,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Niche,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,Other Europe,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,Netherlands,2022,"1,000-2,500 sqm",1,0-5 EUR mn,0,"2,000-3,000 EUR/sqm",2
+Hotel,Germany,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"50,000-100,000 sqm",6,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Land,United Kingdom,2022,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"1,000-2,500 sqm",1,10-25 EUR mn,2,"15,000-25,000 EUR/sqm",7
+Office,Other Europe,2022,"10,000-25,000 sqm",4,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Industrial,Netherlands,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Retail,United Kingdom,2022,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"50,000-100,000 sqm",6,"500-1,000 EUR mn",7,"15,000-25,000 EUR/sqm",7
+Mixed Use,Netherlands,2022,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Retail,Other Europe,2022,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Niche,Germany,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Office,Netherlands,2022,"1,000-2,500 sqm",1,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Office,France,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,France,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,France,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2022,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,Netherlands,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Residential,Netherlands,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,France,2022,"0-1,000 sqm",0,10-25 EUR mn,2,"15,000-25,000 EUR/sqm",7
+Industrial,Other Europe,2022,"100,000+ sqm",7,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,France,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2022,"10,000-25,000 sqm",4,250-500 EUR mn,6,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Hotel,Spain,2022,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Industrial,Other Europe,2022,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,France,2022,"5,000-10,000 sqm",3,250-500 EUR mn,6,"25,000+ EUR/sqm",8
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Spain,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"1,000-2,500 sqm",1,10-25 EUR mn,2,"15,000-25,000 EUR/sqm",7
+Hotel,Spain,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Mixed Use,Germany,2022,"100,000+ sqm",7,"500-1,000 EUR mn",7,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Mixed Use,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Retail,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2022,"100,000+ sqm",7,"500-1,000 EUR mn",7,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Niche,United Kingdom,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,France,2022,"5,000-10,000 sqm",3,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Office,France,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Mixed Use,Other Europe,2022,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Niche,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Mixed Use,United Kingdom,2022,"50,000-100,000 sqm",6,"500-1,000 EUR mn",7,"7,500-10,000 EUR/sqm",5
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,Spain,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Mixed Use,Spain,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Retail,Germany,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,Netherlands,2022,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Mixed Use,Germany,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,France,2022,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"0-1,000 sqm",0,10-25 EUR mn,2,"25,000+ EUR/sqm",8
+Retail,France,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"7,500-10,000 EUR/sqm",5
+Niche,France,2022,"0-1,000 sqm",0,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Other Europe,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"1,000-2,500 sqm",1,10-25 EUR mn,2,"7,500-10,000 EUR/sqm",5
+Mixed Use,United Kingdom,2022,"100,000+ sqm",7,100-250 EUR mn,5,"0-1,000 EUR/sqm",0
+Niche,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2022,"1,000-2,500 sqm",1,10-25 EUR mn,2,"7,500-10,000 EUR/sqm",5
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2022,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Hotel,France,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Retail,Spain,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Mixed Use,Netherlands,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2022,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Retail,France,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Retail,Other Europe,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,Germany,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,Germany,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Mixed Use,Other Europe,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Hotel,Spain,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,France,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Niche,United Kingdom,2022,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Niche,Germany,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,Spain,2022,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2022,"50,000-100,000 sqm",6,250-500 EUR mn,6,"2,000-3,000 EUR/sqm",2
+Hotel,Other Europe,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Spain,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"7,500-10,000 EUR/sqm",5
+Niche,United Kingdom,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2022,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Residential,Germany,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Retail,Germany,2022,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2022,"2,500-5,000 sqm",2,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Mixed Use,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Mixed Use,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Retail,Other Europe,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"50,000-100,000 sqm",6,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Other Europe,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Retail,Other Europe,2022,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2022,"1,000-2,500 sqm",1,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2022,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Mixed Use,Other Europe,2022,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2022,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"5,000-10,000 sqm",3,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Industrial,Other Europe,2022,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Residential,Germany,2022,"1,000-2,500 sqm",1,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,Netherlands,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Hotel,Other Europe,2022,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,Other Europe,2022,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Office,Other Europe,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Spain,2022,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2022,"25,000-50,000 sqm",5,50-100 EUR mn,4,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2022,"1,000-2,500 sqm",1,0-5 EUR mn,0,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2022,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Retail,Other Europe,2022,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,Netherlands,2022,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2022,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Industrial,Netherlands,2022,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,Germany,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Mixed Use,Germany,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,Other Europe,2021,"50,000-100,000 sqm",6,250-500 EUR mn,6,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,Other Europe,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"1,000-2,500 sqm",1,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Germany,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,Other Europe,2021,"50,000-100,000 sqm",6,250-500 EUR mn,6,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Land,United Kingdom,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Industrial,Other Europe,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,250-500 EUR mn,6,"15,000-25,000 EUR/sqm",7
+Industrial,Netherlands,2021,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2021,"0-1,000 sqm",0,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Industrial,Netherlands,2021,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2021,"50,000-100,000 sqm",6,"1,000+ EUR mn",8,"25,000+ EUR/sqm",8
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"15,000-25,000 EUR/sqm",7
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,Spain,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,Netherlands,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Retail,France,2021,"50,000-100,000 sqm",6,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Hotel,Spain,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Industrial,Germany,2021,"100,000+ sqm",7,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Office,Netherlands,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,Germany,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,France,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"25,000-50,000 sqm",5,"500-1,000 EUR mn",7,"10,000-15,000 EUR/sqm",6
+Niche,Other Europe,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Retail,Other Europe,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,250-500 EUR mn,6,"15,000-25,000 EUR/sqm",7
+Industrial,Other Europe,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Retail,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Spain,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Retail,Netherlands,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2021,"25,000-50,000 sqm",5,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Mixed Use,Germany,2021,"5,000-10,000 sqm",3,250-500 EUR mn,6,"25,000+ EUR/sqm",8
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,Other Europe,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,France,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Industrial,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Mixed Use,Germany,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,Germany,2021,"5,000-10,000 sqm",3,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Residential,Netherlands,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Office,Germany,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Mixed Use,Netherlands,2021,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2021,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Retail,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Industrial,France,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Retail,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Hotel,Germany,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,Netherlands,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,Other Europe,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,25-50 EUR mn,3,"7,500-10,000 EUR/sqm",5
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Mixed Use,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2021,"10,000-25,000 sqm",4,250-500 EUR mn,6,"15,000-25,000 EUR/sqm",7
+Industrial,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Land,Other Europe,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,Netherlands,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Mixed Use,Germany,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,25-50 EUR mn,3,"15,000-25,000 EUR/sqm",7
+Industrial,Other Europe,2021,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Office,Germany,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Mixed Use,Other Europe,2021,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Spain,2021,"2,500-5,000 sqm",2,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Niche,Other Europe,2021,"2,500-5,000 sqm",2,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Mixed Use,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Residential,Other Europe,2021,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Land,Germany,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Hotel,Spain,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Industrial,Other Europe,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,100-250 EUR mn,5,"25,000+ EUR/sqm",8
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Mixed Use,Germany,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Land,Spain,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Residential,Other Europe,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Mixed Use,United Kingdom,2021,"0-1,000 sqm",0,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"25,000-50,000 sqm",5,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Industrial,Spain,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Land,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,Other Europe,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"2,000-3,000 EUR/sqm",2
+Mixed Use,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Netherlands,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,Other Europe,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"25,000-50,000 sqm",5,250-500 EUR mn,6,"10,000-15,000 EUR/sqm",6
+Land,Germany,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Mixed Use,Germany,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"5,000-10,000 sqm",3,100-250 EUR mn,5,"15,000-25,000 EUR/sqm",7
+Mixed Use,Germany,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,Spain,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Residential,Germany,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Industrial,Other Europe,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,Other Europe,2021,"25,000-50,000 sqm",5,25-50 EUR mn,3,"1,000-2,000 EUR/sqm",1
+Office,Other Europe,2021,"1,000-2,500 sqm",1,50-100 EUR mn,4,"25,000+ EUR/sqm",8
+Office,Spain,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Niche,Other Europe,2021,"25,000-50,000 sqm",5,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Land,Other Europe,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Mixed Use,Other Europe,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Residential,United Kingdom,2021,"0-1,000 sqm",0,10-25 EUR mn,2,"25,000+ EUR/sqm",8
+Office,Other Europe,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Office,France,2021,"2,500-5,000 sqm",2,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Industrial,Other Europe,2021,"100,000+ sqm",7,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Industrial,Germany,2021,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"7,500-10,000 EUR/sqm",5
+Industrial,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,Spain,2021,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Mixed Use,France,2021,"1,000-2,500 sqm",1,25-50 EUR mn,3,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"50,000-100,000 sqm",6,"500-1,000 EUR mn",7,"10,000-15,000 EUR/sqm",6
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,100-250 EUR mn,5,"10,000-15,000 EUR/sqm",6
+Niche,United Kingdom,2021,"0-1,000 sqm",0,25-50 EUR mn,3,"25,000+ EUR/sqm",8
+Office,France,2021,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Office,Netherlands,2021,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2021,"25,000-50,000 sqm",5,25-50 EUR mn,3,"0-1,000 EUR/sqm",0
+Retail,Spain,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,0-5 EUR mn,0,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Niche,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"1,000-2,500 sqm",1,10-25 EUR mn,2,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Industrial,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Industrial,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Industrial,Spain,2021,"50,000-100,000 sqm",6,50-100 EUR mn,4,"0-1,000 EUR/sqm",0
+Industrial,Netherlands,2021,"10,000-25,000 sqm",4,10-25 EUR mn,2,"1,000-2,000 EUR/sqm",1
+Office,United Kingdom,2021,"2,500-5,000 sqm",2,10-25 EUR mn,2,"5,000-7,500 EUR/sqm",4
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,10-25 EUR mn,2,"3,000-5,000 EUR/sqm",3
+Industrial,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"2,000-3,000 EUR/sqm",2
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"25,000-50,000 sqm",5,10-25 EUR mn,2,"0-1,000 EUR/sqm",0
+Industrial,United Kingdom,2021,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"10,000-25,000 sqm",4,5-10 EUR mn,1,"0-1,000 EUR/sqm",0
+Office,Other Europe,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"5,000-7,500 EUR/sqm",4
+Retail,Netherlands,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"2,000-3,000 EUR/sqm",2
+Retail,United Kingdom,2021,"2,500-5,000 sqm",2,0-5 EUR mn,0,"1,000-2,000 EUR/sqm",1
+Niche,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Industrial,Netherlands,2021,"100,000+ sqm",7,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"2,500-5,000 sqm",2,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"1,000-2,500 sqm",1,5-10 EUR mn,1,"3,000-5,000 EUR/sqm",3
+Office,Netherlands,2021,"5,000-10,000 sqm",3,5-10 EUR mn,1,"1,000-2,000 EUR/sqm",1
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,50-100 EUR mn,4,"10,000-15,000 EUR/sqm",6
+Industrial,United Kingdom,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"1,000-2,000 EUR/sqm",1
+Mixed Use,United Kingdom,2021,"50,000-100,000 sqm",6,100-250 EUR mn,5,"2,000-3,000 EUR/sqm",2
+Office,Other Europe,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Niche,Other Europe,2021,"10,000-25,000 sqm",4,25-50 EUR mn,3,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"5,000-10,000 sqm",3,25-50 EUR mn,3,"5,000-7,500 EUR/sqm",4
+Office,Other Europe,2021,"25,000-50,000 sqm",5,100-250 EUR mn,5,"3,000-5,000 EUR/sqm",3
+Retail,United Kingdom,2021,"1,000-2,500 sqm",1,0-5 EUR mn,0,"3,000-5,000 EUR/sqm",3
+Office,United Kingdom,2021,"10,000-25,000 sqm",4,50-100 EUR mn,4,"5,000-7,500 EUR/sqm",4
