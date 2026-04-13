@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.streamlit/
+
+data/raw/*
+!data/raw/.gitkeep
+
+data/indices/*
+!data/indices/.gitkeep
