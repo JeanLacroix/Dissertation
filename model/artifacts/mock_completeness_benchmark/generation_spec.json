@@ -1,0 +1,41 @@
+{
+  "random_seed": 42,
+  "base_formula": "log_deal_size_eur_mn ~ log_total_size_sqm * C(primary_asset_type) + C(country_group) + C(model_year_effect)",
+  "signal_share_of_current_residual_variance": 0.5,
+  "irreducible_noise_share_of_current_residual_variance": 0.5,
+  "current_change_d_residual_variance": 0.6551865972264977,
+  "scaled_synthetic_signal_variance": 0.3275932986132489,
+  "irreducible_noise_variance": 0.3683423250282392,
+  "synthetic_feature_coefficients_after_scaling": {
+    "micro_location_score": 0.34442520474396127,
+    "building_quality_score": 0.25831890355797094,
+    "lease_quality_score": 0.22961680316264088,
+    "tenant_covenant_score": 0.20091470276731077
+  },
+  "feature_summary": [
+    {
+      "feature": "micro_location_score",
+      "mean": -1.5536648741110063e-17,
+      "std": 1.0,
+      "corr_with_mock_log_price": 0.3507713417964183
+    },
+    {
+      "feature": "building_quality_score",
+      "mean": -1.2947207284258385e-18,
+      "std": 1.0,
+      "corr_with_mock_log_price": 0.12862840285683932
+    },
+    {
+      "feature": "lease_quality_score",
+      "mean": 2.589441456851677e-18,
+      "std": 1.0,
+      "corr_with_mock_log_price": 0.2028284910528222
+    },
+    {
+      "feature": "tenant_covenant_score",
+      "mean": 0.0,
+      "std": 1.0,
+      "corr_with_mock_log_price": 0.22799354421594553
+    }
+  ]
+}

@@ -9,3 +9,6 @@ data/raw/*
 
 data/indices/*
 !data/indices/.gitkeep
+
+data/outreach/*.db
+data/outreach/*.sqlite

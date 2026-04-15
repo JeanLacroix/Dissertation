@@ -1,12 +1,22 @@
 {
-  "created_at_utc": "2026-04-13T19:51:59.778671+00:00",
-  "model_formula": "log_deal_size_eur_mn ~ log_total_size_sqm + C(primary_asset_type) + C(country_group) + log_index_value",
-  "target_variable": "log_deal_size_eur_mn",
-  "features": [
+  "created_at_utc": "2026-04-13T21:07:49.398329+00:00",
+  "app_framing": {
+    "tool_type": "Comparable retrieval tool",
+    "deployment_decision": "Point valuation evaluated and rejected on out-of-sample grounds.",
+    "selected_stage_two_specification": "change_d",
+    "selected_stage_two_metrics_source": "model\\artifacts\\stage_two_refits\\change_d_metrics.json",
+    "deployed_artifacts": [
+      "model/artifacts/comps_sample.parquet",
+      "model/artifacts/metadata.json"
+    ]
+  },
+  "model_formula_evaluated": "log_deal_size_eur_mn ~ log_total_size_sqm * C(primary_asset_type) + C(country_group) + C(model_year_effect)",
+  "features_evaluated": [
     "log_total_size_sqm",
     "primary_asset_type",
     "country_group",
-    "log_index_value"
+    "model_year_effect",
+    "log_total_size_sqm x primary_asset_type"
   ],
   "asset_type_levels": [
     "Office",
@@ -14,9 +24,7 @@
     "Retail",
     "Mixed Use",
     "Hotel",
-    "Niche",
-    "Residential",
-    "Land"
+    "Residential"
   ],
   "country_group_levels": [
     "United Kingdom",
@@ -26,14 +34,14 @@
     "France",
     "Other Europe"
   ],
-  "training_sample_size": 726,
+  "training_sample_size": 686,
   "country_group_counts": {
-    "United Kingdom": 420,
-    "Netherlands": 58,
-    "Spain": 45,
-    "Germany": 44,
-    "France": 39,
-    "Other Europe": 120
+    "United Kingdom": 399,
+    "Netherlands": 57,
+    "Spain": 41,
+    "Germany": 40,
+    "France": 36,
+    "Other Europe": 113
   },
   "asset_type_counts": {
     "Office": 284,
@@ -41,26 +49,24 @@
     "Retail": 146,
     "Mixed Use": 66,
     "Hotel": 18,
-    "Niche": 28,
-    "Residential": 15,
-    "Land": 12
+    "Residential": 15
   },
   "other_europe_bucket_composition": {
-    "Poland": 20,
-    "Ireland": 18,
-    "Italy": 14,
+    "Poland": 19,
+    "Ireland": 17,
     "Sweden": 14,
-    "Denmark": 10,
+    "Italy": 13,
+    "Denmark": 8,
     "Belgium": 5,
     "Latvia": 5,
     "Finland": 5,
-    "Portugal": 4,
     "Greece": 3,
     "Lithuania": 3,
-    "Austria": 3,
     "Norway": 3,
+    "Portugal": 3,
     "Turkey": 2,
     "Romania": 2,
+    "Austria": 2,
     "Hungary": 2,
     "Luxembourg": 1,
     "Estonia": 1,
@@ -71,248 +77,285 @@
     "Guernsey": 1
   },
   "winsorization": {
-    "lower_quantile": 0.01,
-    "upper_quantile": 0.99,
-    "lower_bound_eur_per_sqm": 307.80610181393064,
-    "upper_bound_eur_per_sqm": 44977.48439507405
+    "lower_quantile": 0.025,
+    "upper_quantile": 0.975,
+    "lower_bound_eur_per_sqm": 464.47679640718565,
+    "upper_bound_eur_per_sqm": 29279.538779543655
   },
   "year_built": {
     "year_built_enabled": false,
     "matched_rows": 8,
     "reason": "Dropped from model because only 8 rows matched, below the 150 threshold.",
-    "included_in_model": false,
-    "rows_removed_for_missing_year_built": 0
+    "included_in_evaluated_model": false
   },
-  "index_inputs": {
-    "country_series": {
-      "United Kingdom": "UK CPI rate proxy",
-      "Netherlands": "ECB HICP rate proxy",
-      "Spain": "ECB HICP rate proxy",
-      "Germany": "ECB HICP rate proxy",
-      "France": "ECB HICP rate proxy",
-      "Other Europe": "ECB HICP rate proxy (U2 aggregate)"
-    },
-    "proxy_note": "Quarterly macro index values are chained from annual inflation-rate series and rebased to 2021Q1 = 100. This is a pragmatic proxy because level property indices were not used in this version.",
-    "residential_substitution_used": false
-  },
-  "validation": {
-    "rolling_origin": {
-      "strategy": "rolling_origin_expanding_window",
-      "folds": [
-        {
-          "fold": "fold_1",
-          "train_rows": 421,
-          "test_rows": 86,
-          "model_metrics": {
-            "mape_pct": 111.55514547151573,
-            "rmse_eur_mn": 54.545139302307746
-          },
-          "baseline_metrics": {
-            "mape_pct": 124.68137164646164,
-            "rmse_eur_mn": 49.40287195739322
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 10.527816626982403,
-            "rmse_reduction_pct": -10.408842929919949
-          }
-        },
-        {
-          "fold": "fold_2",
-          "train_rows": 507,
-          "test_rows": 103,
-          "model_metrics": {
-            "mape_pct": 145.70906201804573,
-            "rmse_eur_mn": 86.54198198560059
-          },
-          "baseline_metrics": {
-            "mape_pct": 118.30244186362549,
-            "rmse_eur_mn": 79.06001716742466
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": -23.166571816001515,
-            "rmse_reduction_pct": -9.463651901733638
-          }
-        },
-        {
-          "fold": "fold_3",
-          "train_rows": 610,
-          "test_rows": 97,
-          "model_metrics": {
-            "mape_pct": 75.54867619275568,
-            "rmse_eur_mn": 69.06698136670303
-          },
-          "baseline_metrics": {
-            "mape_pct": 88.39962975511789,
-            "rmse_eur_mn": 69.45934394158849
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 14.53733867207538,
-            "rmse_reduction_pct": 0.5648809110771458
-          }
-        },
-        {
-          "fold": "fold_4",
-          "train_rows": 707,
-          "test_rows": 19,
-          "model_metrics": {
-            "mape_pct": 79.91030423785568,
-            "rmse_eur_mn": 95.08986579188877
-          },
-          "baseline_metrics": {
-            "mape_pct": 122.55718740063031,
-            "rmse_eur_mn": 158.4617940755863
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 34.79753743316999,
-            "rmse_reduction_pct": 39.99192906617549
-          }
-        }
-      ],
-      "mean_mape_pct": 103.1807969800432,
-      "std_mape_pct": 28.212731928451493,
-      "mean_rmse_eur_mn": 76.31099211162504,
-      "std_rmse_eur_mn": 15.680778764861323,
-      "baseline_mean_mape_pct": 113.48515766645883,
-      "baseline_mean_rmse_eur_mn": 89.09600678549816,
-      "headline_fold": {
-        "fold": "fold_4",
-        "train_rows": 707,
-        "test_rows": 19,
-        "model_metrics": {
-          "mape_pct": 79.91030423785568,
-          "rmse_eur_mn": 95.08986579188877
-        },
-        "baseline_metrics": {
-          "mape_pct": 122.55718740063031,
-          "rmse_eur_mn": 158.4617940755863
-        },
-        "lift_vs_baseline": {
-          "mape_reduction_pct": 34.79753743316999,
-          "rmse_reduction_pct": 39.99192906617549
-        }
-      }
-    },
-    "random_5_fold": {
-      "strategy": "random_5_fold",
-      "folds": [
-        {
-          "fold": "random_fold_1",
-          "train_rows": 580,
-          "test_rows": 146,
-          "model_metrics": {
-            "mape_pct": 108.76229890629759,
-            "rmse_eur_mn": 97.30648648609149
-          },
-          "baseline_metrics": {
-            "mape_pct": 111.74146550589354,
-            "rmse_eur_mn": 100.58170742404444
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 2.666124509919576,
-            "rmse_reduction_pct": 3.2562789217177257
-          }
-        },
-        {
-          "fold": "random_fold_2",
-          "train_rows": 581,
-          "test_rows": 145,
-          "model_metrics": {
-            "mape_pct": 76.25281551116673,
-            "rmse_eur_mn": 148.22722471065336
-          },
-          "baseline_metrics": {
-            "mape_pct": 76.25303165384281,
-            "rmse_eur_mn": 134.12825801319366
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 0.00028345453471531455,
-            "rmse_reduction_pct": -10.51155580956911
-          }
-        },
-        {
-          "fold": "random_fold_3",
-          "train_rows": 581,
-          "test_rows": 145,
-          "model_metrics": {
-            "mape_pct": 109.85129554125935,
-            "rmse_eur_mn": 57.90747505209912
-          },
-          "baseline_metrics": {
-            "mape_pct": 111.06825155913762,
-            "rmse_eur_mn": 80.55286325672634
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 1.095683060456132,
-            "rmse_reduction_pct": 28.112455956351468
-          }
-        },
-        {
-          "fold": "random_fold_4",
-          "train_rows": 581,
-          "test_rows": 145,
-          "model_metrics": {
-            "mape_pct": 94.00940144453874,
-            "rmse_eur_mn": 74.99076381849544
-          },
-          "baseline_metrics": {
-            "mape_pct": 94.77422201873843,
-            "rmse_eur_mn": 67.7588244858707
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 0.8069921946164552,
-            "rmse_reduction_pct": -10.673059025887856
-          }
-        },
-        {
-          "fold": "random_fold_5",
-          "train_rows": 581,
-          "test_rows": 145,
-          "model_metrics": {
-            "mape_pct": 80.21967442976845,
-            "rmse_eur_mn": 83.13827271937156
-          },
-          "baseline_metrics": {
-            "mape_pct": 90.11458717369342,
-            "rmse_eur_mn": 77.86551450404998
-          },
-          "lift_vs_baseline": {
-            "mape_reduction_pct": 10.980367390301419,
-            "rmse_reduction_pct": -6.771621877676444
-          }
-        }
-      ],
-      "mean_mape_pct": 93.81909716660616,
-      "std_mape_pct": 13.956256150192967,
-      "mean_rmse_eur_mn": 92.3140445573422,
-      "std_rmse_eur_mn": 30.722340603434105,
-      "baseline_mean_mape_pct": 96.79031158226117,
-      "baseline_mean_rmse_eur_mn": 92.17743353677704
-    },
-    "comparison": {
-      "absolute_mean_mape_gap_pct_points": 9.361699813437042,
-      "substantial_divergence": true,
-      "criterion": "Absolute difference in mean MAPE >= 5 percentage points."
+  "retrieval_scoring": {
+    "description": "Comparables are ranked by a transparent similarity score combining log-size proximity with bonuses for same asset type, same country group, and same transaction year.",
+    "weights": {
+      "log_size_similarity_scale": 100.0,
+      "log_size_similarity_penalty_multiplier": 4.0,
+      "same_asset_type_bonus": 70.0,
+      "same_country_bonus": 20.0,
+      "same_year_bonus": 10.0
     }
   },
-  "final_model_fit": {
-    "nobs": 726,
-    "rsquared": 0.5584067772230584,
-    "rsquared_adj": 0.5497115520206995,
-    "aic": 1856.4152754317722,
-    "bic": 1925.228525654144
+  "reference_benchmark": {
+    "definition": "Median price per square metre in the deployed change D training sample for each asset-type by country-group cell. This is a reference benchmark, not a prediction.",
+    "cells": [
+      {
+        "asset_type": "Hotel",
+        "country": "France",
+        "median_price_per_sqm_eur": 12035.449870527736,
+        "sample_size": 3
+      },
+      {
+        "asset_type": "Hotel",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 3134.8406707879367,
+        "sample_size": 4
+      },
+      {
+        "asset_type": "Hotel",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 2443.925291111549,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Hotel",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 5159.5491347832985,
+        "sample_size": 7
+      },
+      {
+        "asset_type": "Hotel",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 4310.661547962927,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "France",
+        "median_price_per_sqm_eur": 922.6894796972476,
+        "sample_size": 4
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 1181.25,
+        "sample_size": 7
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "Netherlands",
+        "median_price_per_sqm_eur": 1147.588611272516,
+        "sample_size": 17
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 887.2413793103449,
+        "sample_size": 23
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 805.5555555555555,
+        "sample_size": 5
+      },
+      {
+        "asset_type": "Industrial",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 1567.046090072367,
+        "sample_size": 101
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "France",
+        "median_price_per_sqm_eur": 12386.831275720164,
+        "sample_size": 1
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 5246.930275328609,
+        "sample_size": 9
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "Netherlands",
+        "median_price_per_sqm_eur": 1368.5903441384048,
+        "sample_size": 8
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 2809.8503466511556,
+        "sample_size": 6
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 13814.655172413793,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Mixed Use",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 5256.169087960661,
+        "sample_size": 40
+      },
+      {
+        "asset_type": "Office",
+        "country": "France",
+        "median_price_per_sqm_eur": 9859.154929577464,
+        "sample_size": 23
+      },
+      {
+        "asset_type": "Office",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 4385.995964458919,
+        "sample_size": 11
+      },
+      {
+        "asset_type": "Office",
+        "country": "Netherlands",
+        "median_price_per_sqm_eur": 1892.7249233488055,
+        "sample_size": 22
+      },
+      {
+        "asset_type": "Office",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 4621.061366170062,
+        "sample_size": 56
+      },
+      {
+        "asset_type": "Office",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 4902.5978479307505,
+        "sample_size": 14
+      },
+      {
+        "asset_type": "Office",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 7044.375785343149,
+        "sample_size": 158
+      },
+      {
+        "asset_type": "Residential",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 5243.90243902439,
+        "sample_size": 3
+      },
+      {
+        "asset_type": "Residential",
+        "country": "Netherlands",
+        "median_price_per_sqm_eur": 5378.054952748045,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Residential",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 2765.0677876421605,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Residential",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 3129.440440081629,
+        "sample_size": 6
+      },
+      {
+        "asset_type": "Residential",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 16320.649343343217,
+        "sample_size": 2
+      },
+      {
+        "asset_type": "Retail",
+        "country": "France",
+        "median_price_per_sqm_eur": 3028.3505154639174,
+        "sample_size": 5
+      },
+      {
+        "asset_type": "Retail",
+        "country": "Germany",
+        "median_price_per_sqm_eur": 2818.227716630844,
+        "sample_size": 6
+      },
+      {
+        "asset_type": "Retail",
+        "country": "Netherlands",
+        "median_price_per_sqm_eur": 2231.7632850241544,
+        "sample_size": 8
+      },
+      {
+        "asset_type": "Retail",
+        "country": "Other Europe",
+        "median_price_per_sqm_eur": 3722.142857142857,
+        "sample_size": 24
+      },
+      {
+        "asset_type": "Retail",
+        "country": "Spain",
+        "median_price_per_sqm_eur": 3101.736972704715,
+        "sample_size": 7
+      },
+      {
+        "asset_type": "Retail",
+        "country": "United Kingdom",
+        "median_price_per_sqm_eur": 3216.5814578847494,
+        "sample_size": 96
+      }
+    ],
+    "global_median_price_per_sqm_eur": 3344.7813944542986
   },
-  "prediction_interval": {
-    "method": "Residual bootstrap on the log scale using 1,000 resampled residuals from the final fitted model.",
-    "residual_pool_size": 1000,
-    "lower_percentile": 5,
-    "upper_percentile": 95
+  "valuation_evaluation": {
+    "decision": "Rejected for deployment as a point valuation tool.",
+    "reason": "The evaluated hedonic specification did not beat the naive country-and-type median benchmark on rolling-origin out-of-sample prediction.",
+    "rolling_origin": {
+      "fold_mapes_pct": [
+        {
+          "test_year": 2023,
+          "model_mape_pct": 101.40767442770908,
+          "baseline_mape_pct": 101.62247177416184
+        },
+        {
+          "test_year": 2024,
+          "model_mape_pct": 105.13985165958945,
+          "baseline_mape_pct": 100.13009442871399
+        },
+        {
+          "test_year": 2025,
+          "model_mape_pct": 70.02816749205607,
+          "baseline_mape_pct": 83.81366658281006
+        },
+        {
+          "test_year": 2026,
+          "model_mape_pct": 74.11859756639983,
+          "baseline_mape_pct": 63.1739778113332
+        }
+      ],
+      "mean_mape_pct": 87.67357278643861,
+      "std_mape_pct": 15.722548511503412,
+      "headline_fold_test_year": 2026,
+      "headline_fold_mape_pct": 74.11859756639983,
+      "headline_fold_baseline_mape_pct": 63.1739778113332
+    },
+    "random_5_fold": {
+      "mean_mape_pct": 84.67080341255298,
+      "std_mape_pct": 8.731511185588914,
+      "baseline_mean_mape_pct": 89.21317117501225
+    },
+    "final_model_fit": {
+      "rsquared": 0.596865270706155,
+      "rsquared_adj": 0.5847409179454379
+    }
   },
+  "methodology_note": "A hedonic point-valuation specification was evaluated and rejected for deployment because it did not beat the naive country-and-type median benchmark out of sample. Rolling-origin MAPE by fold was 2023: 101.4%, 2024: 105.1%, 2025: 70.0%, 2026: 74.1% (mean 87.7%). The naive benchmark recorded 63.2% MAPE on the 2026 headline fold.",
   "limitations": [
-    "United Kingdom transactions constitute 58 percent of the training sample, so the fitted coefficients are UK-dominated and country fixed effects mainly shift levels for smaller markets.",
-    "Size elasticity is assumed homogeneous across countries and asset types; no interaction specification was tested in this version.",
-    "Mixed Use and Niche are heterogeneous buckets in the Preqin taxonomy and are likely to contribute higher residual variance.",
-    "The Other Europe dummy pools roughly 20 countries with small sample sizes.",
-    "Commercial property level indices were not used in this version; a chained quarterly proxy was built from HICP/CPI inflation-rate series rebased to 2021Q1 = 100.",
-    "Year built was excluded from the model because the Capital IQ enrichment produced fewer than 150 confident matches."
+    "This deployed application is a comparable-retrieval tool, not an automated valuation model.",
+    "United Kingdom transactions remain a large share of the deployed sample, so the comparable universe is still UK-heavy.",
+    "Mixed Use remains a heterogeneous Preqin bucket and will widen dispersion in the retrieved sample.",
+    "The Other Europe country group pools many small-sample markets into one bucket.",
+    "Year built was excluded because the Capital IQ enrichment produced fewer than 150 confident matches."
   ]
 }

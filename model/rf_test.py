@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
 
+from .chart_palette import ACCENT, PRIMARY, SECONDARY
 from .train import (
     ARTIFACTS_DIR,
     CHANGE_D_FORMULA,
@@ -136,9 +137,9 @@ def _plot_fold_comparison(fold_results: pd.DataFrame) -> Path:
     fig, ax = plt.subplots(figsize=(10.5, 6))
 
     series = [
-        ("rf_mape_pct", "Random forest", "#756bb1"),
-        ("hedonic_mape_pct", "Change D hedonic", "#d95f0e"),
-        ("baseline_mape_pct", "Naive baseline", "#6baed6"),
+        ("rf_mape_pct", "Random forest", ACCENT),
+        ("hedonic_mape_pct", "Change D hedonic", SECONDARY),
+        ("baseline_mape_pct", "Naive baseline", PRIMARY),
     ]
     for offset, (column, label, color) in enumerate(series):
         positions = x + (offset - 1) * width

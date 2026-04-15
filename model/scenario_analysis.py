@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from .chart_palette import ACCENT, DARK, LIGHT, PALE, PRIMARY, SECONDARY
 from .train import (
     ARTIFACTS_DIR,
     CHANGE_D_FORMULA,
@@ -123,11 +124,11 @@ def _plot_completeness_vs_error(results: pd.DataFrame) -> Path:
     fig, ax = plt.subplots(figsize=(9.5, 6))
     x = results["completeness_ratio"].to_numpy(dtype=float)
 
-    ax.plot(x, results["rolling_mean_mape_pct"], marker="o", linewidth=2.2, color="#1f77b4", label="Rolling-origin mean MAPE")
-    ax.plot(x, results["headline_fold_mape_pct"], marker="o", linewidth=2.2, color="#ff7f0e", label="2026 headline MAPE")
+    ax.plot(x, results["rolling_mean_mape_pct"], marker="o", linewidth=2.2, color=SECONDARY, label="Rolling-origin mean MAPE")
+    ax.plot(x, results["headline_fold_mape_pct"], marker="o", linewidth=2.2, color=ACCENT, label="2026 headline MAPE")
     ax.axhline(
         float(results["headline_fold_naive_baseline_mape_pct"].iloc[0]),
-        color="#7f7f7f",
+        color=PRIMARY,
         linestyle="--",
         linewidth=1.8,
         label="2026 naive baseline MAPE",
@@ -160,7 +161,7 @@ def _plot_per_scenario_fold_mape(results: pd.DataFrame) -> Path:
         ("fold_2025_mape_pct", "2025"),
         ("fold_2026_mape_pct", "2026"),
     ]
-    colors = ["#9ecae1", "#6baed6", "#3182bd", "#08519c"]
+    colors = [PALE, LIGHT, SECONDARY, DARK]
 
     for offset, ((column, label), color) in enumerate(zip(fold_columns, colors)):
         positions = x + (offset - 1.5) * width
