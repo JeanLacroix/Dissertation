@@ -167,12 +167,16 @@ Run the commands below from:
 cd c:\Users\jeanl\Documents\UCL\dissertation\Solution\Dissertation
 ```
 
-If your virtual environment contains activation scripts, you can activate it. In this repo, the current `.venv` may not include `Activate.ps1`, so the safest option is to call the executables directly from `.venv\Scripts`.
-
-Optional activation:
+You can now activate the local virtual environment with:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
+```
+
+If your PowerShell execution policy blocks local scripts, use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\.venv\Scripts\Activate.ps1
 ```
 
 Install or refresh dependencies:

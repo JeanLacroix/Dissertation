@@ -109,6 +109,15 @@ For each selected asset, every contact receives a score made from:
 From the project root:
 
 ```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m src.backend.scbsm_assets
+python -m streamlit run src/frontend/app.py
+```
+
+If `Activate.ps1` is blocked by PowerShell execution policy, use the executables directly:
+
+```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m src.backend.scbsm_assets
 .\.venv\Scripts\python.exe -m streamlit run src/frontend/app.py
