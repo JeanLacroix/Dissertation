@@ -10,6 +10,7 @@ from statsmodels.stats.diagnostic import het_breuschpagan
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.stattools import durbin_watson, jarque_bera
 
+from .chart_palette import ACCENT, DARK, PRIMARY, SECONDARY
 from .train import ARTIFACTS_DIR, CHANGE_D_FORMULA, _fit_ols, prepare_change_d_analysis_frame
 
 DIAGNOSTICS_DIR = ARTIFACTS_DIR / "residual_diagnostics"
@@ -23,8 +24,8 @@ def _fit_change_d_model():
 
 def _plot_residuals_vs_fitted(fitted: np.ndarray, residuals: np.ndarray) -> Path:
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
-    ax.scatter(fitted, residuals, alpha=0.6, color="#1f77b4", edgecolor="none")
-    ax.axhline(0.0, color="#333333", linestyle="--", linewidth=1)
+    ax.scatter(fitted, residuals, alpha=0.6, color=PRIMARY, edgecolor="none")
+    ax.axhline(0.0, color=DARK, linestyle="--", linewidth=1)
     ax.set_xlabel("Fitted log deal size")
     ax.set_ylabel("Residual")
     ax.set_title("Residuals versus fitted values")
@@ -39,8 +40,8 @@ def _plot_residuals_vs_fitted(fitted: np.ndarray, residuals: np.ndarray) -> Path
 
 def _plot_residuals_vs_logsize(log_size: np.ndarray, residuals: np.ndarray) -> Path:
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
-    ax.scatter(log_size, residuals, alpha=0.6, color="#3182bd", edgecolor="none")
-    ax.axhline(0.0, color="#333333", linestyle="--", linewidth=1)
+    ax.scatter(log_size, residuals, alpha=0.6, color=SECONDARY, edgecolor="none")
+    ax.axhline(0.0, color=DARK, linestyle="--", linewidth=1)
     ax.set_xlabel("Log total size (sqm)")
     ax.set_ylabel("Residual")
     ax.set_title("Residuals versus log size")
@@ -55,8 +56,17 @@ def _plot_residuals_vs_logsize(log_size: np.ndarray, residuals: np.ndarray) -> P
 
 def _plot_qq(residuals: np.ndarray) -> Path:
     fig = qqplot(residuals, line="45", fit=True)
-    fig.axes[0].set_title("Q-Q plot of OLS residuals")
-    fig.axes[0].grid(alpha=0.2)
+    ax = fig.axes[0]
+    for index, line in enumerate(ax.get_lines()):
+        if index == 0:
+            line.set_color(SECONDARY)
+            line.set_markerfacecolor(SECONDARY)
+            line.set_markeredgecolor(SECONDARY)
+        else:
+            line.set_color(DARK)
+            line.set_linestyle("--")
+    ax.set_title("Q-Q plot of OLS residuals")
+    ax.grid(alpha=0.2)
     fig.tight_layout()
 
     output_path = DIAGNOSTICS_DIR / "qq_plot.png"
@@ -68,7 +78,7 @@ def _plot_qq(residuals: np.ndarray) -> Path:
 def _plot_scale_location(fitted: np.ndarray, standardized_residuals: np.ndarray) -> Path:
     y_values = np.sqrt(np.abs(standardized_residuals))
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
-    ax.scatter(fitted, y_values, alpha=0.6, color="#756bb1", edgecolor="none")
+    ax.scatter(fitted, y_values, alpha=0.6, color=ACCENT, edgecolor="none")
     ax.set_xlabel("Fitted log deal size")
     ax.set_ylabel("Sqrt(|standardised residual|)")
     ax.set_title("Scale-location plot")

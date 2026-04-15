@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from .chart_palette import ACCENT, DARK, GRID, LIGHT, MUTED, NEUTRAL, PALE, PRIMARY, SECONDARY, TERTIARY, green_cmap
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REFIT_DIR = PROJECT_ROOT / "model" / "artifacts" / "stage_two_refits"
 
@@ -21,15 +23,15 @@ SPEC_FILES = [
 ]
 
 COLORS = {
-    "rolling": "#1f77b4",
-    "headline": "#ff7f0e",
-    "baseline": "#7f7f7f",
-    "random": "#2ca02c",
-    "retained": "#d62728",
-    "collapsed": "#9ecae1",
-    "actual": "#1f77b4",
-    "model": "#ff7f0e",
-    "naive": "#7f7f7f",
+    "rolling": SECONDARY,
+    "headline": ACCENT,
+    "baseline": PRIMARY,
+    "random": TERTIARY,
+    "retained": PRIMARY,
+    "collapsed": LIGHT,
+    "actual": DARK,
+    "model": SECONDARY,
+    "naive": LIGHT,
 }
 
 
@@ -121,14 +123,14 @@ def _plot_refit_path(summary: pd.DataFrame) -> Path:
         for x_pos, y_val in zip(x, summary[metric_column]):
             ax.text(x_pos, y_val + offset, f"{y_val:.1f}", ha="center", va="center", fontsize=9)
 
-    ax.axhline(70, color="#bbbbbb", linestyle="--", linewidth=1)
-    ax.axhline(60, color="#d9d9d9", linestyle="--", linewidth=1)
-    ax.axhline(55, color="#d9d9d9", linestyle=":", linewidth=1)
-    ax.axhline(50, color="#bbbbbb", linestyle=":", linewidth=1)
-    ax.text(len(summary) - 0.6, 71.5, "70%", fontsize=9, color="#666666")
-    ax.text(len(summary) - 0.6, 61.5, "60%", fontsize=9, color="#666666")
-    ax.text(len(summary) - 0.6, 56.5, "55%", fontsize=9, color="#666666")
-    ax.text(len(summary) - 0.6, 51.5, "50%", fontsize=9, color="#666666")
+    ax.axhline(70, color=NEUTRAL, linestyle="--", linewidth=1)
+    ax.axhline(60, color=GRID, linestyle="--", linewidth=1)
+    ax.axhline(55, color=GRID, linestyle=":", linewidth=1)
+    ax.axhline(50, color=NEUTRAL, linestyle=":", linewidth=1)
+    ax.text(len(summary) - 0.6, 71.5, "70%", fontsize=9, color=MUTED)
+    ax.text(len(summary) - 0.6, 61.5, "60%", fontsize=9, color=MUTED)
+    ax.text(len(summary) - 0.6, 56.5, "55%", fontsize=9, color=MUTED)
+    ax.text(len(summary) - 0.6, 51.5, "50%", fontsize=9, color=MUTED)
 
     ax.set_xticks(x, summary["label"])
     ax.set_ylabel("MAPE (%)")
@@ -148,7 +150,7 @@ def _plot_fold_heatmap(summary: pd.DataFrame) -> Path:
     heatmap = np.array(summary["fold_mapes"].tolist(), dtype=float)
 
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    image = ax.imshow(heatmap, cmap="RdYlGn_r", aspect="auto")
+    image = ax.imshow(heatmap, cmap=green_cmap("refit_fold_mape"), aspect="auto")
 
     ax.set_xticks(np.arange(len(fold_labels)), fold_labels)
     ax.set_yticks(np.arange(len(summary)), summary["label"])
@@ -186,17 +188,17 @@ def _plot_e_f_dashboard(summary: pd.DataFrame) -> Path:
     e_vals = [float(subset.loc[subset["label"].eq("E"), key].iloc[0]) for key, _ in metrics]
     f_vals = [float(subset.loc[subset["label"].eq("F"), key].iloc[0]) for key, _ in metrics]
 
-    bars_e = ax.bar(x - width / 2, e_vals, width=width, color="#3182bd", label="Refit E")
-    bars_f = ax.bar(x + width / 2, f_vals, width=width, color="#e6550d", label="Refit F")
+    bars_e = ax.bar(x - width / 2, e_vals, width=width, color=SECONDARY, label="Refit E")
+    bars_f = ax.bar(x + width / 2, f_vals, width=width, color=PRIMARY, label="Refit F")
 
     for bars in (bars_e, bars_f):
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width() / 2, height + 2, f"{height:.1f}", ha="center", va="bottom", fontsize=9)
 
-    ax.axhline(60, color="#bbbbbb", linestyle="--", linewidth=1)
-    ax.axhline(55, color="#d9d9d9", linestyle=":", linewidth=1)
-    ax.axhline(50, color="#bbbbbb", linestyle=":", linewidth=1)
+    ax.axhline(60, color=NEUTRAL, linestyle="--", linewidth=1)
+    ax.axhline(55, color=GRID, linestyle=":", linewidth=1)
+    ax.axhline(50, color=NEUTRAL, linestyle=":", linewidth=1)
     ax.set_xticks(x, [label for _, label in metrics])
     ax.set_ylabel("MAPE (%)")
     ax.set_title("E and F diagnostics: good-looking headline folds did not survive broader checks")
@@ -219,7 +221,7 @@ def _plot_f_country_scope() -> Path:
     fig_height = max(6.0, len(counts) * 0.26)
     fig, ax = plt.subplots(figsize=(9.5, fig_height))
     ax.barh(counts.index, counts.values, color=colors)
-    ax.axvline(15, color="#333333", linestyle="--", linewidth=1.2)
+    ax.axvline(15, color=DARK, linestyle="--", linewidth=1.2)
     ax.text(15.3, len(counts) - 0.5, "15-office threshold", fontsize=9, va="top")
 
     ax.set_xlabel("Office transactions in non-UK sample")
@@ -260,7 +262,7 @@ def _plot_f_headline_single_deal() -> Path:
         transform=ax.transAxes,
         va="top",
         fontsize=10,
-        bbox={"boxstyle": "round,pad=0.3", "facecolor": "#f7f7f7", "edgecolor": "#cccccc"},
+        bbox={"boxstyle": "round,pad=0.3", "facecolor": PALE, "edgecolor": LIGHT},
     )
     fig.tight_layout()
 
@@ -277,7 +279,7 @@ def _plot_sample_size_tradeoff(summary: pd.DataFrame) -> Path:
         summary["headline_mape_pct"],
         s=summary["rolling_mean_mape_pct"] * 2.0,
         c=np.arange(len(summary)),
-        cmap="viridis",
+        cmap=green_cmap("refit_sample_size"),
         alpha=0.85,
     )
 
@@ -297,7 +299,7 @@ def _plot_sample_size_tradeoff(summary: pd.DataFrame) -> Path:
         transform=ax.transAxes,
         va="top",
         fontsize=9,
-        bbox={"boxstyle": "round,pad=0.25", "facecolor": "#f7f7f7", "edgecolor": "#cccccc"},
+        bbox={"boxstyle": "round,pad=0.25", "facecolor": PALE, "edgecolor": LIGHT},
     )
     fig.tight_layout()
 

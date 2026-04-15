@@ -31,15 +31,15 @@ if (nrow(sample) == 0) {
 }
 
 palette <- list(
-  ink = "#1F2933",
-  muted = "#52616B",
-  grid = "#D8DEE4",
-  cool = "#2A6F97",
-  cool_light = "#98C1D9",
-  warm = "#D1495B",
-  gold = "#E9C46A",
-  sand = "#F6F1EB",
-  slate = "#5E6472"
+  ink = "#203128",
+  muted = "#5D6F64",
+  grid = "#D5E2D9",
+  cool = "#1F6B4F",
+  cool_light = "#9FCFB0",
+  warm = "#2F8A64",
+  gold = "#7CA35A",
+  sand = "#F3F8F4",
+  slate = "#4C6355"
 )
 
 open_png <- function(filename, width = 10, height = 7) {
@@ -92,7 +92,7 @@ draw_heatmap <- function(mat, filename, title_text, subtitle_text, footnote_text
   min_value <- min(mat)
   max_value <- max(mat)
   fill_scale <- grDevices::colorRampPalette(
-    c(palette$sand, palette$cool_light, palette$cool, "#153B50")
+    c(palette$sand, palette$cool_light, palette$cool, "#154734")
   )(100)
 
   open_png(filename, width = 11, height = 8)
