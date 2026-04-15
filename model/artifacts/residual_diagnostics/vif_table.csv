@@ -1,0 +1,21 @@
+predictor,vif,flag
+log_total_size_sqm:C(primary_asset_type)[T.Hotel],155.40272677252335,True
+C(primary_asset_type)[T.Hotel],154.3076958741807,True
+log_total_size_sqm:C(primary_asset_type)[T.Industrial],95.42017795575494,True
+C(primary_asset_type)[T.Industrial],89.48402959225832,True
+log_total_size_sqm:C(primary_asset_type)[T.Retail],78.48516424342353,True
+C(primary_asset_type)[T.Retail],75.29056110973481,True
+C(primary_asset_type)[T.Residential],74.61603480286122,True
+log_total_size_sqm:C(primary_asset_type)[T.Residential],73.78918837603234,True
+log_total_size_sqm:C(primary_asset_type)[T.Mixed Use],65.10868381503741,True
+C(primary_asset_type)[T.Mixed Use],63.695066967111835,True
+log_total_size_sqm,3.5303763527326844,False
+C(model_year_effect)[T.2022],1.437828252502638,False
+C(model_year_effect)[T.2025],1.3289557341006781,False
+C(model_year_effect)[T.2024],1.2915882906357887,False
+C(model_year_effect)[T.2023],1.2694356503560977,False
+C(country_group)[T.Spain],1.2015624470775534,False
+C(country_group)[T.Other Europe],1.1893396539460082,False
+C(country_group)[T.Germany],1.1269348973317388,False
+C(country_group)[T.France],1.102055323159838,False
+C(country_group)[T.Netherlands],1.075964521911065,False

@@ -1,0 +1,6 @@
+test_name,assumption,null_hypothesis,statistic,p_value,secondary_statistic,secondary_p_value,conclusion_5pct
+Linearity (visual),Linearity,No strong systematic non-linearity is visible in residual plots.,,,,,"Residuals remain centred around zero in the residual-versus-fitted and residual-versus-log(size) plots, with no strong curvature, although dispersion remains wide."
+Breusch-Pagan,Homoscedasticity,Residual variance is constant.,47.81928251782605,0.00045094450116446057,2.4914434111872525,0.0003395827068846278,Reject homoscedasticity at the 5% level.
+Variance inflation factor,Multicollinearity,No severe multicollinearity is present.,155.40272677252335,,10.0,,At least one predictor exceeds the VIF > 10 threshold.
+Durbin-Watson,Independence of residuals,Residuals do not exhibit strong serial correlation.,1.983152983977716,,,,"The statistic is close to 2, which is broadly consistent with low residual autocorrelation."
+Jarque-Bera,Normality of residuals,Residuals are normally distributed.,0.4141699035019453,0.8129505854783464,,,Fail to reject normality at the 5% level.

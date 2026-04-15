@@ -1,0 +1,19 @@
+{
+  "inputs_used": [
+    "data/raw/Preqin_RealEstate_Deals-13_04_2026.xlsx",
+    "data/raw/Data_test_2_cap_IQ_since_2021.xls",
+    "data/indices/ecb_hicp_housing_water_electricity.csv",
+    "data/indices/uk_cpi_inflation_rate.csv"
+  ],
+  "training_sample_hash": "57a8bca2abfd999c13c505e97fd2d914b8a41d3cbf576dabce6e11d2a14a786e",
+  "training_sample_rows": 686,
+  "pipeline_filtered_rows": 726,
+  "analysis_rows": 686,
+  "random_seed": 42,
+  "completeness_definition": "Number of fitted coefficients in the scenario specification divided by the number of fitted coefficients in scenario A.",
+  "scenario_order": [
+    "A",
+    "B",
+    "C"
+  ]
+}

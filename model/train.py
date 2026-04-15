@@ -24,6 +24,8 @@ MODEL_PATH = ARTIFACTS_DIR / "model.pkl"
 RESIDUALS_PATH = ARTIFACTS_DIR / "residuals.npy"
 COMPS_SAMPLE_PATH = ARTIFACTS_DIR / "comps_sample.parquet"
 METADATA_PATH = ARTIFACTS_DIR / "metadata.json"
+CHANGE_D_METRICS_PATH = ARTIFACTS_DIR / "stage_two_refits" / "change_d_metrics.json"
+CHANGE_D_FORMULA = "log_deal_size_eur_mn ~ log_total_size_sqm * C(primary_asset_type) + C(country_group) + C(model_year_effect)"
 
 BASE_FORMULA = (
     "log_deal_size_eur_mn ~ log_total_size_sqm + C(primary_asset_type) + "
@@ -31,6 +33,7 @@ BASE_FORMULA = (
 )
 BOOTSTRAP_RESIDUAL_COUNT = 1_000
 RANDOM_SEED = 42
+YEAR_FE_CAP = 2025
 
 ROLLING_FOLD_SPECS = [
     ("fold_1", [2021, 2022], 2023),
@@ -81,6 +84,32 @@ def _prepare_model_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any
 
 def _fit_ols(train_frame: pd.DataFrame, formula: str):
     return smf.ols(formula=formula, data=train_frame).fit()
+
+
+def _map_prediction_year_effect(year_value: int, available_years: list[int]) -> int:
+    capped_year = min(int(year_value), YEAR_FE_CAP)
+    eligible_years = [year for year in available_years if year <= capped_year]
+    if eligible_years:
+        return max(eligible_years)
+    return min(available_years)
+
+
+def _prepare_formula_frames(
+    train_frame: pd.DataFrame,
+    test_frame: pd.DataFrame,
+    formula: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    train = train_frame.copy()
+    test = test_frame.copy()
+    if "C(model_year_effect)" in formula:
+        train["model_year_effect"] = train["model_year_effect"].astype(int)
+        available_years = sorted(train["model_year_effect"].dropna().astype(int).unique().tolist())
+        test["model_year_effect"] = test["transaction_year"].astype(int).map(
+            lambda year_value: _map_prediction_year_effect(year_value, available_years)
+        )
+        train["model_year_effect"] = pd.Categorical(train["model_year_effect"], categories=available_years, ordered=True)
+        test["model_year_effect"] = pd.Categorical(test["model_year_effect"], categories=available_years, ordered=True)
+    return train, test
 
 
 def _predict_deal_size_eur_mn(model, frame: pd.DataFrame) -> np.ndarray:
@@ -137,17 +166,19 @@ def _compute_lift(model_metrics: dict[str, float], baseline_metrics: dict[str, f
 
 
 def _run_fold(train_frame: pd.DataFrame, test_frame: pd.DataFrame, formula: str, fold_name: str) -> dict[str, Any]:
-    model = _fit_ols(train_frame, formula)
-    model_predictions = _predict_deal_size_eur_mn(model, test_frame)
-    baseline_predictions = _baseline_predict(train_frame, test_frame)
+    prepared_train, prepared_test = _prepare_formula_frames(train_frame, test_frame, formula)
+    model = _fit_ols(prepared_train, formula)
+    model_predictions = _predict_deal_size_eur_mn(model, prepared_test)
+    baseline_predictions = _baseline_predict(prepared_train, prepared_test)
 
-    model_metrics = _evaluate_predictions(test_frame["actual_deal_size_eur_mn"], model_predictions)
-    baseline_metrics = _evaluate_predictions(test_frame["actual_deal_size_eur_mn"], baseline_predictions)
+    model_metrics = _evaluate_predictions(prepared_test["actual_deal_size_eur_mn"], model_predictions)
+    baseline_metrics = _evaluate_predictions(prepared_test["actual_deal_size_eur_mn"], baseline_predictions)
 
     return {
         "fold": fold_name,
-        "train_rows": int(len(train_frame)),
-        "test_rows": int(len(test_frame)),
+        "train_rows": int(len(prepared_train)),
+        "test_rows": int(len(prepared_test)),
+        "test_year": int(prepared_test["transaction_year"].iloc[0]),
         "model_metrics": model_metrics,
         "baseline_metrics": baseline_metrics,
         "lift_vs_baseline": _compute_lift(model_metrics, baseline_metrics),
@@ -220,6 +251,11 @@ def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
     return labels
 
 
+def _format_year_bucket(series: pd.Series) -> tuple[pd.Series, pd.Series]:
+    year_order = series.astype("Int64")
+    return year_order.astype(str), year_order
+
+
 def _build_bucket_series(series: pd.Series, bins: list[float], unit: str) -> tuple[pd.Series, pd.Series]:
     labels = _format_bucket_labels(bins, unit)
     bucketed = pd.cut(
@@ -234,7 +270,18 @@ def _build_bucket_series(series: pd.Series, bins: list[float], unit: str) -> tup
     return bucketed.astype(str), codes
 
 
+def _bucket_midpoints(bins: list[float]) -> list[float]:
+    midpoints: list[float] = []
+    for lower, upper in zip(bins[:-1], bins[1:]):
+        if np.isinf(upper):
+            midpoints.append(float(lower * 1.25))
+        else:
+            midpoints.append(float((lower + upper) / 2.0))
+    return midpoints
+
+
 def build_anonymised_comps_sample(model_frame: pd.DataFrame) -> pd.DataFrame:
+    year_bucket, year_bucket_order = _format_year_bucket(model_frame["transaction_year"])
     size_bucket, size_bucket_order = _build_bucket_series(model_frame["TOTAL SIZE (SQ. M.)"], SIZE_BUCKET_BINS, "sqm")
     price_bucket, price_bucket_order = _build_bucket_series(
         model_frame["actual_deal_size_eur_mn"],
@@ -246,14 +293,20 @@ def build_anonymised_comps_sample(model_frame: pd.DataFrame) -> pd.DataFrame:
         PRICE_PER_SQM_BUCKET_BINS,
         "EUR/sqm",
     )
+    size_midpoints = {
+        label: midpoint
+        for label, midpoint in zip(_format_bucket_labels(SIZE_BUCKET_BINS, "sqm"), _bucket_midpoints(SIZE_BUCKET_BINS))
+    }
 
     return pd.DataFrame(
         {
             "asset_type": model_frame["primary_asset_type"].astype(str),
             "country": model_frame["country_group"].astype(str),
-            "transaction_year": model_frame["transaction_year"].astype("Int64"),
+            "year_bucket": year_bucket,
+            "year_bucket_order": year_bucket_order,
             "size_bucket": size_bucket,
             "size_bucket_order": size_bucket_order,
+            "size_bucket_mid_sqm": size_bucket.map(size_midpoints).astype(float),
             "price_bucket": price_bucket,
             "price_bucket_order": price_bucket_order,
             "price_per_sqm_bucket": ppsqm_bucket,
@@ -300,6 +353,219 @@ def _limitations(include_year_built: bool) -> list[str]:
             "Year built was excluded from the model because the Capital IQ enrichment produced fewer than 150 confident matches."
         )
     return base_limitations
+
+
+def _prepare_change_d_deployment_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, Any]]:
+    frame = dataset.copy()
+    frame = frame.loc[~frame["primary_asset_type"].astype(str).isin(["Land", "Niche"])].copy()
+
+    lower_bound = float(frame["price_per_sqm_eur"].quantile(0.025))
+    upper_bound = float(frame["price_per_sqm_eur"].quantile(0.975))
+    frame["price_per_sqm_winsorized_eur"] = frame["price_per_sqm_eur"].clip(lower_bound, upper_bound)
+    frame["deal_size_winsorized_eur_mn"] = (
+        frame["price_per_sqm_winsorized_eur"] * frame["TOTAL SIZE (SQ. M.)"] / 1_000_000
+    )
+    frame["actual_deal_size_eur_mn"] = frame["deal_size_winsorized_eur_mn"]
+    frame["actual_price_per_sqm_eur"] = frame["price_per_sqm_winsorized_eur"]
+    frame["log_total_size_sqm"] = np.log(frame["TOTAL SIZE (SQ. M.)"])
+    frame["log_deal_size_eur_mn"] = np.log(frame["deal_size_winsorized_eur_mn"])
+    frame["model_year_effect"] = frame["transaction_year"].astype(int).clip(upper=2025)
+    frame["primary_asset_type"] = pd.Categorical(
+        frame["primary_asset_type"].astype(str),
+        categories=[level for level in ASSET_TYPE_LEVELS if level not in {"Land", "Niche"}],
+    )
+    frame["country_group"] = pd.Categorical(frame["country_group"].astype(str), categories=COUNTRY_GROUP_LEVELS)
+    frame = frame.loc[np.isfinite(frame["log_total_size_sqm"]) & np.isfinite(frame["log_deal_size_eur_mn"])].copy()
+    frame = frame.reset_index(drop=True)
+
+    prep_metadata = {
+        "include_year_built": False,
+        "rows_removed_for_missing_year_built": 0,
+        "rows_available_for_model": int(len(frame)),
+        "asset_type_levels": [level for level in ASSET_TYPE_LEVELS if level not in {"Land", "Niche"}],
+        "country_group_levels": COUNTRY_GROUP_LEVELS,
+        "winsorization": {
+            "lower_quantile": 0.025,
+            "upper_quantile": 0.975,
+            "lower_bound_eur_per_sqm": lower_bound,
+            "upper_bound_eur_per_sqm": upper_bound,
+        },
+        "specification_name": "change_d",
+        "specification_description": "Change C plus size-by-asset-type interactions.",
+        "model_formula": CHANGE_D_FORMULA,
+    }
+    return frame, prep_metadata
+
+
+def _load_change_d_metrics() -> dict[str, Any]:
+    if not CHANGE_D_METRICS_PATH.exists():
+        raise FileNotFoundError(
+            "The change D metrics artifact is missing. Run the stage-two refit diagnostics before exporting deployment artifacts."
+        )
+    with CHANGE_D_METRICS_PATH.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _build_reference_benchmarks(model_frame: pd.DataFrame) -> dict[str, Any]:
+    benchmark_cells = (
+        model_frame.assign(
+            asset_type=model_frame["primary_asset_type"].astype(str),
+            country=model_frame["country_group"].astype(str),
+        )
+        .groupby(["asset_type", "country"], observed=True)["actual_price_per_sqm_eur"]
+        .agg(median_price_per_sqm_eur="median", sample_size="size")
+        .reset_index()
+        .sort_values(["asset_type", "country"])
+    )
+    records = [
+        {
+            "asset_type": str(row["asset_type"]),
+            "country": str(row["country"]),
+            "median_price_per_sqm_eur": float(row["median_price_per_sqm_eur"]),
+            "sample_size": int(row["sample_size"]),
+        }
+        for _, row in benchmark_cells.iterrows()
+    ]
+    return {
+        "definition": (
+            "Median price per square metre in the deployed change D training sample for each asset-type by country-group cell. "
+            "This is a reference benchmark, not a prediction."
+        ),
+        "cells": records,
+        "global_median_price_per_sqm_eur": float(model_frame["actual_price_per_sqm_eur"].median()),
+    }
+
+
+def _build_methodology_note(change_d_metrics: dict[str, Any]) -> str:
+    rolling_folds = change_d_metrics["rolling_origin"]["folds"]
+    fold_bits = [
+        f"{fold['test_year']}: {fold['model_metrics']['mape_pct']:.1f}%"
+        for fold in rolling_folds
+    ]
+    return (
+        "A hedonic point-valuation specification was evaluated and rejected for deployment because it did not beat the "
+        "naive country-and-type median benchmark out of sample. Rolling-origin MAPE by fold was "
+        + ", ".join(fold_bits)
+        + f" (mean {change_d_metrics['rolling_origin']['mean_mape_pct']:.1f}%). "
+        + f"The naive benchmark recorded {change_d_metrics['rolling_origin']['headline_fold']['baseline_metrics']['mape_pct']:.1f}% "
+        "MAPE on the 2026 headline fold."
+    )
+
+
+def _build_retrieval_metadata(
+    model_frame: pd.DataFrame,
+    pipeline_metadata: dict[str, Any],
+    prep_metadata: dict[str, Any],
+    change_d_metrics: dict[str, Any],
+) -> dict[str, Any]:
+    reference_benchmarks = _build_reference_benchmarks(model_frame)
+    rolling_origin = change_d_metrics["rolling_origin"]
+    random_5_fold = change_d_metrics["random_5_fold"]
+    headline_fold = rolling_origin["headline_fold"]
+
+    return {
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "app_framing": {
+            "tool_type": "Comparable retrieval tool",
+            "deployment_decision": "Point valuation evaluated and rejected on out-of-sample grounds.",
+            "selected_stage_two_specification": "change_d",
+            "selected_stage_two_metrics_source": str(CHANGE_D_METRICS_PATH.relative_to(PROJECT_ROOT)),
+            "deployed_artifacts": ["model/artifacts/comps_sample.parquet", "model/artifacts/metadata.json"],
+        },
+        "model_formula_evaluated": prep_metadata["model_formula"],
+        "features_evaluated": [
+            "log_total_size_sqm",
+            "primary_asset_type",
+            "country_group",
+            "model_year_effect",
+            "log_total_size_sqm x primary_asset_type",
+        ],
+        "asset_type_levels": prep_metadata["asset_type_levels"],
+        "country_group_levels": prep_metadata["country_group_levels"],
+        "training_sample_size": int(len(model_frame)),
+        "country_group_counts": {
+            str(key): int(value)
+            for key, value in model_frame["country_group"].value_counts(dropna=False).sort_index().items()
+        },
+        "asset_type_counts": {
+            str(key): int(value)
+            for key, value in model_frame["primary_asset_type"].value_counts(dropna=False).sort_index().items()
+        },
+        "other_europe_bucket_composition": _other_europe_composition(model_frame),
+        "winsorization": prep_metadata["winsorization"],
+        "year_built": {
+            **pipeline_metadata["year_built"],
+            "included_in_evaluated_model": False,
+        },
+        "retrieval_scoring": {
+            "description": (
+                "Comparables are ranked by a transparent similarity score combining log-size proximity with bonuses for "
+                "same asset type, same country group, and same transaction year."
+            ),
+            "weights": {
+                "log_size_similarity_scale": 100.0,
+                "log_size_similarity_penalty_multiplier": 4.0,
+                "same_asset_type_bonus": 70.0,
+                "same_country_bonus": 20.0,
+                "same_year_bonus": 10.0,
+            },
+        },
+        "reference_benchmark": reference_benchmarks,
+        "valuation_evaluation": {
+            "decision": "Rejected for deployment as a point valuation tool.",
+            "reason": (
+                "The evaluated hedonic specification did not beat the naive country-and-type median benchmark on "
+                "rolling-origin out-of-sample prediction."
+            ),
+            "rolling_origin": {
+                "fold_mapes_pct": [
+                    {
+                        "test_year": int(fold["test_year"]),
+                        "model_mape_pct": float(fold["model_metrics"]["mape_pct"]),
+                        "baseline_mape_pct": float(fold["baseline_metrics"]["mape_pct"]),
+                    }
+                    for fold in rolling_origin["folds"]
+                ],
+                "mean_mape_pct": float(rolling_origin["mean_mape_pct"]),
+                "std_mape_pct": float(rolling_origin["std_mape_pct"]),
+                "headline_fold_test_year": int(headline_fold["test_year"]),
+                "headline_fold_mape_pct": float(headline_fold["model_metrics"]["mape_pct"]),
+                "headline_fold_baseline_mape_pct": float(headline_fold["baseline_metrics"]["mape_pct"]),
+            },
+            "random_5_fold": {
+                "mean_mape_pct": float(random_5_fold["mean_mape_pct"]),
+                "std_mape_pct": float(random_5_fold["std_mape_pct"]),
+                "baseline_mean_mape_pct": float(random_5_fold["baseline_mean_mape_pct"]),
+            },
+            "final_model_fit": {
+                "rsquared": float(change_d_metrics["rsquared"]),
+                "rsquared_adj": float(change_d_metrics["rsquared_adj"]),
+            },
+        },
+        "methodology_note": _build_methodology_note(change_d_metrics),
+        "limitations": [
+            "This deployed application is a comparable-retrieval tool, not an automated valuation model.",
+            "United Kingdom transactions remain a large share of the deployed sample, so the comparable universe is still UK-heavy.",
+            "Mixed Use remains a heterogeneous Preqin bucket and will widen dispersion in the retrieved sample.",
+            "The Other Europe country group pools many small-sample markets into one bucket.",
+            "Year built was excluded because the Capital IQ enrichment produced fewer than 150 confident matches.",
+        ],
+    }
+
+
+def _export_retrieval_artifacts(comps_sample: pd.DataFrame, metadata: dict[str, Any]) -> None:
+    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+    comps_sample.to_parquet(COMPS_SAMPLE_PATH, index=False)
+    with METADATA_PATH.open("w", encoding="utf-8") as handle:
+        json.dump(metadata, handle, indent=2)
+    MODEL_PATH.unlink(missing_ok=True)
+    RESIDUALS_PATH.unlink(missing_ok=True)
+
+
+def prepare_change_d_analysis_frame() -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any]]:
+    dataset, pipeline_metadata = build_training_frame()
+    model_frame, prep_metadata = _prepare_change_d_deployment_frame(dataset, pipeline_metadata)
+    return model_frame, pipeline_metadata, prep_metadata
 
 
 def _build_metadata(
@@ -378,37 +644,28 @@ def _export_artifacts(
 
 def train_and_export_artifacts() -> TrainingOutputs:
     dataset, pipeline_metadata = build_training_frame()
-    model_frame, prep_metadata = _prepare_model_frame(dataset, pipeline_metadata)
-    formula = _build_formula(include_year_built=prep_metadata["include_year_built"])
-
-    rolling_cv = run_rolling_origin_cv(model_frame, formula)
-    random_cv = run_random_cv(model_frame, formula)
-    final_model = _fit_ols(model_frame, formula)
-    residual_pool = _build_bootstrap_residual_pool(final_model)
+    model_frame, prep_metadata = _prepare_change_d_deployment_frame(dataset, pipeline_metadata)
+    change_d_metrics = _load_change_d_metrics()
     comps_sample = build_anonymised_comps_sample(model_frame)
-    metadata = _build_metadata(
+    metadata = _build_retrieval_metadata(
         model_frame=model_frame,
         pipeline_metadata=pipeline_metadata,
         prep_metadata=prep_metadata,
-        formula=formula,
-        final_model=final_model,
-        rolling_cv=rolling_cv,
-        random_cv=random_cv,
+        change_d_metrics=change_d_metrics,
     )
-    _export_artifacts(final_model, residual_pool, comps_sample, metadata)
-    return TrainingOutputs(model=final_model, model_frame=model_frame, metadata=metadata)
+    _export_retrieval_artifacts(comps_sample, metadata)
+    return TrainingOutputs(model=None, model_frame=model_frame, metadata=metadata)
 
 
 def main() -> None:
     outputs = train_and_export_artifacts()
-    rolling = outputs.metadata["validation"]["rolling_origin"]
-    headline = rolling["headline_fold"]
+    rolling = outputs.metadata["valuation_evaluation"]["rolling_origin"]
     print(f"Training rows: {outputs.metadata['training_sample_size']}")
-    print(f"Formula: {outputs.metadata['model_formula']}")
+    print(f"Deployment framing: {outputs.metadata['app_framing']['tool_type']}")
+    print(f"Evaluated formula: {outputs.metadata['model_formula_evaluated']}")
     print(f"Rolling mean MAPE: {rolling['mean_mape_pct']:.2f}%")
-    print(f"Rolling mean RMSE: {rolling['mean_rmse_eur_mn']:.2f} EUR mn")
-    print(f"Headline fold MAPE: {headline['model_metrics']['mape_pct']:.2f}%")
-    print(f"Headline fold RMSE: {headline['model_metrics']['rmse_eur_mn']:.2f} EUR mn")
+    print(f"Headline fold MAPE: {rolling['headline_fold_mape_pct']:.2f}%")
+    print(f"Headline fold naive baseline MAPE: {rolling['headline_fold_baseline_mape_pct']:.2f}%")
     print(f"Artifacts written to: {ARTIFACTS_DIR}")
 
 

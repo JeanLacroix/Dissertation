@@ -1,0 +1,19 @@
+feature,importance
+log_total_size_sqm,0.7320341417355107
+primary_asset_type_Industrial,0.12637363481248104
+primary_asset_type_Office,0.029519915495414113
+primary_asset_type_Retail,0.024402389829467044
+country_group_United Kingdom,0.01646422629591116
+country_group_Netherlands,0.01384637040408372
+model_year_effect_2024,0.012857575126766477
+model_year_effect_2021,0.011363870646538711
+model_year_effect_2022,0.007639046385845598
+country_group_Other Europe,0.005627879770932406
+primary_asset_type_Mixed Use,0.005299398027626446
+model_year_effect_2025,0.004320828307631292
+model_year_effect_2023,0.004144245625757645
+country_group_France,0.002597949176858561
+country_group_Spain,0.0011876640416864912
+primary_asset_type_Hotel,0.0011307660486044103
+country_group_Germany,0.0010762729325973154
+primary_asset_type_Residential,0.00011382533628694991
