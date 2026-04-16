@@ -10,3 +10,6 @@ matplotlib==3.10.8
 pyarrow==23.0.1
 beautifulsoup4==4.14.2
 lxml==6.0.2
+fastapi==0.121.0
+uvicorn==0.38.0
+httpx==0.28.1

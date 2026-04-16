@@ -1,14 +1,14 @@
 # Outreach App Data Layer
 
-This folder contains the local data and documentation for the outreach-selection prototype.
+This folder contains the local data and documentation for the SCBSM mandate-fit prototype.
 
 ## Purpose
 
-The outreach workflow starts from a public asset universe extracted from SCBSM and combines it with a lightweight contact database. The objective is not to predict value. The objective is to decide:
+The outreach workflow in this version starts from one investor only: SCBSM. Public SCBSM data is both the investor context and the market context, while new mandates can arrive through the staged HTTP intake queue. The objective is not to predict value. The objective is to decide:
 
-- which asset is in scope
-- which contact looks most relevant for that asset
-- what the yield and ticket context are
+- which mandate is in scope
+- how well that mandate fits SCBSM
+- what the ticket, yield, and portfolio-cap-rate context are
 - what the last follow-up was
 - what the next move should be
 
@@ -17,18 +17,20 @@ The outreach workflow starts from a public asset universe extracted from SCBSM a
 ### Seed data
 
 - `seed_assets.csv`
-  Clean asset universe built from SCBSM's 2024 URD.
+  Public market-context rows built from SCBSM's 2024 URD.
 - `seed_contacts.csv`
-  Demo contact database used to initialise the SQLite store.
+  Legacy support row retained for backward compatibility only.
+- `scbsm_profile.json`
+  Small qualitative metadata file used to complete the SCBSM profile where the portfolio data is silent.
 - `seed_outreach_events.csv`
-  Demo follow-up history used to initialise the SQLite store.
+  Minimal SCBSM follow-up history used to initialise the SQLite store.
 
 ### Generated / local files
 
 - `outreach.db`
-  Local SQLite database created on first run. Gitignored.
+  Local SQLite database created on first run. Gitignored. This now stores the staged HTTP mandate queue as well.
 - `exports/`
-  Ranked-contact CSV exports written by the CLI recommendation script.
+  Ranked-investor CSV exports written by the CLI recommendation script.
 
 ### Documentation
 
@@ -44,7 +46,7 @@ The key enrichment is the yield block:
 - `yield_mid_pct`
 - `cap_rate_range_pct`
 
-These fields come from the SCBSM expertise assumptions table. They are joined back to each asset by `zone`.
+These fields come from the SCBSM expertise assumptions table. They are joined back to each public row by `zone`.
 
 ### Important interpretation
 
@@ -60,7 +62,7 @@ The precision flag in the dataset is therefore:
 
 - `yield_precision = zone_range`
 
-That is deliberate. The app uses the yield to compare the asset against the contact's target-return range. It does not pretend to have a bespoke per-asset expert cap rate.
+That is deliberate. The app uses the yield to compare the mandate against the investor's target-return range and current portfolio cap rate. It does not pretend to have a bespoke per-asset expert cap rate.
 
 ## Backend components using this folder
 
@@ -69,38 +71,43 @@ That is deliberate. The app uses the yield to compare the asset against the cont
 - `src/backend/outreach_db.py`
   Seeds and manages the SQLite database.
 - `src/backend/outreach_scoring.py`
-  Computes the outreach ranking.
+  Computes the SCBSM fit score.
 - `src/backend/outreach_service.py`
-  Serves the frontend and writes follow-up logs.
+  Serves the frontend, loads staged mandates, and writes follow-up logs.
 - `src/backend/recommend_outreach.py`
-  Exports a ranked contact list from the command line.
+  Exports a one-row SCBSM fit result from the command line.
+- `src/backend/api.py`
+  Exposes `GET /health`, `POST /mandates/staging`, and `GET /mandates/staging`.
 
 ## Frontend component
 
 - `src/frontend/app.py`
 
-The Streamlit frontend reads from the SQLite database and exposes three things:
+The Streamlit frontend reads from the SQLite database and exposes four things:
 
-1. the ranked outreach list
-2. the full fiche for a selected contact
-3. the follow-up form that writes a new event into the database
+1. the SCBSM fit card for the current mandate
+2. the staged HTTP mandate queue
+3. the follow-up form that writes a new SCBSM event into the database
+4. a snapshot of the SCBSM portfolio context
 
 ## Scoring logic in plain English
 
-For each selected asset, every contact receives a score made from:
+For each input mandate, SCBSM receives a score made from:
 
 - `zone_match_score`
-  Does the contact cover Paris, IDF, Province, or Nationwide?
+  Does SCBSM already hold disclosed assets in the same zone or city?
 - `asset_focus_score`
-  Does the contact typically buy Office, Retail, or Mixed Commercial?
+  Does SCBSM already hold disclosed assets in the same asset class?
 - `ticket_fit_score`
-  Is the asset size inside the contact's target ticket range?
+  Is the deal size inside the observed SCBSM portfolio range?
 - `yield_fit_score`
-  Is the asset's disclosed yield midpoint close to the contact's target-return band?
+  Is the mandate cap-rate estimate close to the relevant SCBSM public yield context?
+- `portfolio_cap_rate_score`
+  Is the overall SCBSM portfolio cap-rate profile aligned with the mandate?
 - relationship and history terms
-  Warm contacts, responsive contacts, and high-priority contacts get bonuses.
+  Recent SCBSM interactions affect the next-action recommendation.
 - cooldown
-  Very recent touches are penalised to avoid spamming the same person.
+  Very recent SCBSM touches are penalised to avoid over-contacting.
 
 ## Commands
 
@@ -148,7 +155,7 @@ This happens automatically when the app or recommendation script runs.
 ### Export a ranked contact list
 
 ```powershell
-.\.venv\Scripts\python.exe -m src.backend.recommend_outreach --top-k 5
+.\.venv\Scripts\python.exe -m src.backend.recommend_outreach
 ```
 
 ### Launch the Streamlit app
@@ -157,9 +164,16 @@ This happens automatically when the app or recommendation script runs.
 .\.venv\Scripts\python.exe -m streamlit run src/frontend/app.py
 ```
 
+### Launch the HTTP mandate-intake API
+
+```powershell
+.\.venv\Scripts\python.exe -m src.backend.api
+```
+
 ## Current limitations
 
-- The contact database is seeded with demo contacts, not a live CRM export.
-- The yield is zone-level, not asset-specific.
+- The prototype currently evaluates one investor only: SCBSM.
+- `seed_contacts.csv` is retained only for backward compatibility and is not the canonical scoring source.
+- The yield is zone-level, not asset-specific, and is used only as market context.
 - The asset universe currently depends on the 2024 URD tables that parsed cleanly.
 - A richer multi-year SCBSM dataset will require a second parser for the older positioned-XHTML filings.

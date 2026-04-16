@@ -1,21 +1,39 @@
 from __future__ import annotations
 
 import io
+import json
 from datetime import date
+from typing import Any
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
 from src.backend.outreach_service import (
+    build_deal_input,
     bootstrap_outreach_environment,
-    get_contact_fiche,
-    get_contact_history,
+    build_scbsm_fiche_markdown,
+    get_scbsm_history,
     load_dashboard_context,
+    load_staged_mandate_into_working_set,
     log_follow_up,
 )
-from src.backend.paths import YIELD_EXTRACTION_NOTE_PATH
+from src.backend.paths import PROJECT_ROOT, YIELD_EXTRACTION_NOTE_PATH
 
-TOP_K_DEFAULT = 8
+ARTIFACTS_DIR = PROJECT_ROOT / "model" / "artifacts"
+COMPS_SAMPLE_PATH = ARTIFACTS_DIR / "comps_sample.parquet"
+METADATA_PATH = ARTIFACTS_DIR / "metadata.json"
+DEAL_FIELD_KEYS = {
+    "mandate_name": "deal_mandate_name",
+    "asset_type": "deal_asset_type",
+    "country": "deal_country",
+    "zone": "deal_zone",
+    "city": "deal_city",
+    "ticket_eur_mn": "deal_ticket_eur_mn",
+    "cap_rate_pct": "deal_cap_rate_pct",
+    "size_sqm": "deal_size_sqm",
+    "transaction_date": "deal_transaction_date",
+}
 
 
 def _csv_download_bytes(frame: pd.DataFrame) -> bytes:
@@ -24,168 +42,260 @@ def _csv_download_bytes(frame: pd.DataFrame) -> bytes:
     return output.getvalue().encode("utf-8")
 
 
-def _safe_choice(options: list[str], preferred: str | None) -> str:
-    if preferred in options:
-        return preferred
-    return options[0]
+def _set_current_deal_state(payload: dict[str, Any]) -> None:
+    baseline = build_deal_input(payload).as_dict()
+    for field, state_key in DEAL_FIELD_KEYS.items():
+        value = baseline[field]
+        if field == "transaction_date":
+            st.session_state[state_key] = pd.to_datetime(value).date()
+        else:
+            st.session_state[state_key] = value
 
 
-def _render_asset_summary(asset: pd.Series) -> None:
-    st.subheader("Selected asset")
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Fair value", f"EUR {asset['fair_value_eur_mn']:,.1f}m")
-    col2.metric("Yield midpoint", f"{asset['yield_mid_pct']:.2f}%")
-    col3.metric("Yield band", asset["cap_rate_range_pct"])
-    col4.metric("Zone", asset["zone"])
-
-    with st.expander("Asset context", expanded=False):
-        st.write(
-            f"**{asset['asset_name']}** is tagged as `{asset['asset_class']}` in `{asset['investment_profile']}`. "
-            f"Valuation date: `{asset['valuation_date']}`. Last expert visit: `{asset['last_visit_date']}`."
-        )
-        st.write(
-            "The yield used by the ranking engine is the zone-level capitalisation band disclosed in the SCBSM URD, "
-            "not an asset-specific expert yield."
-        )
+def _ensure_current_deal_state() -> None:
+    if "current_mandate_source" not in st.session_state:
+        st.session_state["current_mandate_source"] = "manual"
+    defaults = build_deal_input().as_dict()
+    for field, state_key in DEAL_FIELD_KEYS.items():
+        if state_key not in st.session_state:
+            value = defaults[field]
+            if field == "transaction_date":
+                st.session_state[state_key] = pd.to_datetime(value).date()
+            else:
+                st.session_state[state_key] = value
 
 
-def _render_ranked_contacts(ranked: pd.DataFrame, top_k: int) -> pd.DataFrame:
-    st.subheader("Algorithm recommendations")
-    display = ranked.head(top_k).copy()
-    display.insert(0, "rank", range(1, len(display) + 1))
-    display = display[
+def _read_current_deal_state() -> dict[str, Any]:
+    return {
+        "mandate_name": st.session_state[DEAL_FIELD_KEYS["mandate_name"]],
+        "asset_type": st.session_state[DEAL_FIELD_KEYS["asset_type"]],
+        "country": st.session_state[DEAL_FIELD_KEYS["country"]],
+        "zone": st.session_state[DEAL_FIELD_KEYS["zone"]],
+        "city": st.session_state[DEAL_FIELD_KEYS["city"]],
+        "ticket_eur_mn": float(st.session_state[DEAL_FIELD_KEYS["ticket_eur_mn"]]),
+        "cap_rate_pct": float(st.session_state[DEAL_FIELD_KEYS["cap_rate_pct"]]),
+        "size_sqm": float(st.session_state[DEAL_FIELD_KEYS["size_sqm"]]),
+        "transaction_date": st.session_state[DEAL_FIELD_KEYS["transaction_date"]].isoformat(),
+    }
+
+
+@st.cache_data(show_spinner=False)
+def load_comparable_artifacts() -> tuple[pd.DataFrame, dict[str, Any], pd.DataFrame]:
+    if not COMPS_SAMPLE_PATH.exists() or not METADATA_PATH.exists():
+        missing = [str(path.relative_to(PROJECT_ROOT)) for path in [COMPS_SAMPLE_PATH, METADATA_PATH] if not path.exists()]
+        raise FileNotFoundError(f"Missing required artifact(s): {', '.join(missing)}. Run `python -m model.train` first.")
+
+    comps = pd.read_parquet(COMPS_SAMPLE_PATH)
+    metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+    benchmark_frame = pd.DataFrame(metadata["reference_benchmark"]["cells"])
+    return comps, metadata, benchmark_frame
+
+
+def _score_comparables(
+    comps: pd.DataFrame,
+    asset_type: str,
+    country: str,
+    query_year: int,
+    query_size_sqm: float,
+    weights: dict[str, float],
+) -> pd.DataFrame:
+    frame = comps.copy()
+    query_log_size = float(np.log(max(query_size_sqm, 1.0)))
+    comp_log_size = np.log(frame["size_bucket_mid_sqm"].clip(lower=1.0))
+    frame["log_size_gap"] = np.abs(query_log_size - comp_log_size)
+
+    size_component = weights["log_size_similarity_scale"] / (
+        1.0 + weights["log_size_similarity_penalty_multiplier"] * frame["log_size_gap"]
+    )
+    frame["similarity_score"] = size_component
+    frame["similarity_score"] += np.where(frame["asset_type"].eq(asset_type), weights["same_asset_type_bonus"], 0.0)
+    frame["similarity_score"] += np.where(frame["country"].eq(country), weights["same_country_bonus"], 0.0)
+    frame["similarity_score"] += np.where(frame["year_bucket_order"].eq(query_year), weights["same_year_bonus"], 0.0)
+
+    return frame.sort_values(
+        ["similarity_score", "log_size_gap", "year_bucket_order"],
+        ascending=[False, True, False],
+    ).reset_index(drop=True)
+
+
+def _display_comp_table(frame: pd.DataFrame) -> pd.DataFrame:
+    display = frame.loc[
+        :,
         [
-            "rank",
-            "contact_id",
-            "full_name",
-            "company",
-            "title",
-            "outreach_score",
-            "fit_label",
-            "zone_focus",
-            "asset_focus",
-            "days_since_last_touch",
-            "recommended_action",
-        ]
-    ].rename(
+            "similarity_score",
+            "asset_type",
+            "country",
+            "year_bucket",
+            "size_bucket",
+            "price_bucket",
+            "price_per_sqm_bucket",
+        ],
+    ].copy()
+    display["similarity_score"] = display["similarity_score"].round(1)
+    return display.rename(
         columns={
-            "rank": "#",
-            "contact_id": "Contact ID",
-            "full_name": "Name",
-            "company": "Company",
-            "title": "Title",
-            "outreach_score": "Score",
-            "fit_label": "Fit",
-            "zone_focus": "Zone focus",
-            "asset_focus": "Asset focus",
-            "days_since_last_touch": "Days since touch",
-            "recommended_action": "Next best action",
+            "similarity_score": "Similarity score",
+            "asset_type": "Asset type",
+            "country": "Country",
+            "year_bucket": "Year bucket",
+            "size_bucket": "Size bucket",
+            "price_bucket": "Price bucket",
+            "price_per_sqm_bucket": "Price per sqm bucket",
         }
     )
-    display["Score"] = display["Score"].round(1)
-    st.dataframe(display, use_container_width=True, hide_index=True)
-    return display
 
 
-def _render_contact_fiche(asset_id: str, contact_id: str) -> dict[str, object]:
-    fiche = get_contact_fiche(asset_id=asset_id, contact_id=contact_id)
-    recommendation = pd.Series(fiche["recommendation"])
-    contact = pd.Series(fiche["contact"])
-    history = fiche["history"]
+def _deal_input_sidebar() -> dict[str, Any]:
+    _ensure_current_deal_state()
+    with st.sidebar:
+        st.title("Mandate intake")
+        if st.button("Reset to default mandate", use_container_width=True):
+            _set_current_deal_state(build_deal_input().as_dict())
+            st.session_state["current_mandate_source"] = "manual"
+            st.rerun()
 
-    st.subheader("Fiche outreach")
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Outreach score", f"{recommendation['outreach_score']:.1f}")
-    col2.metric("Yield fit", f"{recommendation['yield_fit_score']:.1f}")
-    col3.metric("Ticket fit", f"{recommendation['ticket_fit_score']:.1f}")
-    col4.metric("Geo fit", f"{recommendation['zone_match_score']:.1f}")
+        st.caption(f"Current source: `{st.session_state['current_mandate_source']}`")
+        st.text_input("Mandate name", key=DEAL_FIELD_KEYS["mandate_name"])
+        st.selectbox(
+            "Asset type",
+            options=["Office", "Retail", "Mixed Commercial", "Industrial", "Hotel", "Residential", "Land"],
+            key=DEAL_FIELD_KEYS["asset_type"],
+        )
+        st.text_input("Country", key=DEAL_FIELD_KEYS["country"])
+        st.text_input("Zone / region", key=DEAL_FIELD_KEYS["zone"])
+        st.text_input("City", key=DEAL_FIELD_KEYS["city"])
+        st.number_input("Deal size (EUR mn)", min_value=0.5, step=1.0, key=DEAL_FIELD_KEYS["ticket_eur_mn"])
+        st.number_input("Cap rate estimate (%)", min_value=1.0, max_value=15.0, step=0.25, key=DEAL_FIELD_KEYS["cap_rate_pct"])
+        st.number_input("Approximate size (sqm)", min_value=100.0, step=100.0, key=DEAL_FIELD_KEYS["size_sqm"])
+        st.date_input("Transaction date", key=DEAL_FIELD_KEYS["transaction_date"])
+        st.caption(
+            "This prototype scores one investor only: SCBSM. Fit is derived from the disclosed SCBSM portfolio, "
+            "public yield context, and the minimal SCBSM interaction log."
+        )
+    return _read_current_deal_state()
 
-    st.write(
-        f"**{contact['full_name']}** | {contact['title']} at **{contact['company']}**"
-    )
+
+def _render_platform_summary(context) -> None:
+    st.title("Alantra x SCBSM Mandate Fit Prototype")
     st.caption(
-        f"{contact['city']} | zone focus `{contact['zone_focus']}` | asset focus `{contact['asset_focus']}` | "
-        f"preferred channel `{contact['preferred_channel']}`"
+        "This prototype evaluates one mandate against one investor: SCBSM. "
+        "SCBSM assets remain SCBSM-owned portfolio rows, and inbound HTTP mandates feed a visible staging queue."
     )
-    st.write(recommendation["suggested_pitch"])
+    profile = context.scbsm_profile
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("SCBSM assets", f"{profile['asset_count']}")
+    col2.metric("Portfolio fair value", f"EUR {profile['total_fair_value_eur_mn']:,.1f}m")
+    col3.metric("Weighted cap rate", f"{profile['weighted_cap_rate_pct']:.2f}%")
+    col4.metric("Staged mandates", f"{len(context.staged_mandates)}")
 
-    with st.expander("Full contact profile", expanded=True):
-        st.write(f"Email: `{contact['email']}`")
-        st.write(
-            "Ticket range: "
-            f"EUR {contact['min_ticket_eur_mn']:,.0f}m to EUR {contact['max_ticket_eur_mn']:,.0f}m"
-        )
-        st.write(
-            "Target yield range: "
-            f"{contact['min_target_yield_pct']:.2f}% to {contact['max_target_yield_pct']:.2f}%"
-        )
-        st.write(f"Relationship stage: `{contact['relationship_stage']}`")
-        st.write(f"Owner: `{contact['owner']}`")
-        st.write(f"Notes: {contact['notes']}")
 
-    with st.expander("Score breakdown", expanded=False):
-        st.write(
-            f"- Zone match: {recommendation['zone_match_score']:.1f}\n"
-            f"- Asset focus: {recommendation['asset_focus_score']:.1f}\n"
-            f"- Ticket fit: {recommendation['ticket_fit_score']:.1f}\n"
-            f"- Yield fit: {recommendation['yield_fit_score']:.1f}\n"
-            f"- Relationship stage bonus: {recommendation['relationship_stage_bonus']:.1f}\n"
-            f"- Response bonus: {recommendation['response_bonus']:.1f}\n"
-            f"- Strategic priority bonus: {recommendation['priority_bonus']:.1f}\n"
-            f"- Outcome bonus: {recommendation['outcome_bonus']:.1f}\n"
-            f"- Cooldown penalty: {recommendation['cooldown_penalty']:.1f}"
-        )
-
-    st.download_button(
-        label="Download fiche outreach",
-        data=str(fiche["fiche_markdown"]).encode("utf-8"),
-        file_name=f"{contact_id}_fiche_outreach.md",
-        mime="text/markdown",
+def _render_deal_summary(deal) -> None:
+    st.subheader("Mandate in scope")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Asset type", deal.asset_type)
+    col2.metric("Geography", deal.zone)
+    col3.metric("City", deal.city or "N/A")
+    col4.metric("Ticket size", f"EUR {deal.ticket_eur_mn:,.1f}m")
+    col5.metric("Cap rate", f"{deal.cap_rate_pct:.2f}%")
+    st.caption(
+        f"Mandate name: `{deal.mandate_name}` | Transaction date: `{deal.transaction_date}` | "
+        f"Approximate size: `{deal.size_sqm:,.0f} sqm`"
     )
 
-    st.markdown("**Follow-up history**")
-    if isinstance(history, pd.DataFrame) and not history.empty:
+
+def _render_scbsm_evaluation(context) -> None:
+    evaluation = context.scbsm_evaluation
+    profile = context.scbsm_profile
+    history = get_scbsm_history(context.events)
+
+    st.subheader("SCBSM fit evaluation")
+    top_left, top_mid, top_right, top_far = st.columns(4)
+    top_left.metric("Fit score", f"{evaluation['outreach_score']:.1f}")
+    top_mid.metric("Fit label", evaluation["fit_label"])
+    top_right.metric("Zone reference cap rate", f"{evaluation['zone_reference_cap_rate_pct']:.2f}%")
+    top_far.metric("Latest outcome", evaluation["latest_outcome"].replace("_", " ").title())
+
+    sub_left, sub_mid, sub_right = st.columns(3)
+    sub_left.metric("Same-zone assets", f"{evaluation['same_zone_assets_count']}")
+    sub_mid.metric("Same-asset assets", f"{evaluation['same_asset_assets_count']}")
+    sub_right.metric("Same zone + asset value", f"EUR {evaluation['same_zone_asset_assets_value_eur_mn']:,.1f}m")
+
+    st.info(evaluation["match_summary"])
+    if evaluation["risk_flags"]:
+        st.warning(evaluation["risk_flags"])
+
+    left, right = st.columns([1.2, 1.0], gap="large")
+    with left:
+        st.markdown("**Why the mandate matches SCBSM**")
+        st.markdown(evaluation["explicit_reasons"] or "- No explicit reason recorded.")
+
+        fiche_markdown = build_scbsm_fiche_markdown(
+            deal=context.current_deal,
+            profile=profile,
+            evaluation=evaluation,
+            history=history,
+        )
+        st.download_button(
+            label="Download SCBSM fiche",
+            data=fiche_markdown.encode("utf-8"),
+            file_name="scbsm_mandate_fit.md",
+            mime="text/markdown",
+        )
+
+    with right:
+        st.markdown("**SCBSM profile summary**")
+        st.write(f"**{profile['company']}** | {profile['title']}")
+        st.caption(profile["qualitative_focus"])
+        st.write(f"Zone coverage: `{profile['zone_focus']}`")
+        st.write(f"Asset coverage: `{profile['asset_focus']}`")
+        st.write(
+            f"Ticket range: EUR {profile['min_ticket_eur_mn']:,.1f}m to EUR {profile['max_ticket_eur_mn']:,.1f}m"
+        )
+        st.write(f"Weighted cap rate: {profile['weighted_cap_rate_pct']:.2f}%")
+        st.write(f"Preferred channel: `{profile['preferred_channel']}`")
+        st.write(f"Owner: `{profile['owner']}`")
+        if profile["notes"]:
+            st.write(profile["notes"])
+
+    st.markdown("**SCBSM interaction log**")
+    if not history.empty:
         display = history[
-            ["event_date", "channel", "outcome", "asset_name", "next_action_date", "notes"]
+            [
+                "event_date",
+                "mandate_name",
+                "deal_asset_type",
+                "deal_zone",
+                "deal_city",
+                "deal_ticket_eur_mn",
+                "deal_cap_rate_pct",
+                "channel",
+                "outcome",
+                "next_action_date",
+                "notes",
+            ]
         ].rename(
             columns={
                 "event_date": "Event date",
+                "mandate_name": "Mandate",
+                "deal_asset_type": "Asset type",
+                "deal_zone": "Zone",
+                "deal_city": "City",
+                "deal_ticket_eur_mn": "Ticket (EUR mn)",
+                "deal_cap_rate_pct": "Cap rate",
                 "channel": "Channel",
                 "outcome": "Outcome",
-                "asset_name": "Asset",
                 "next_action_date": "Next action",
                 "notes": "Notes",
             }
         )
         st.dataframe(display, use_container_width=True, hide_index=True)
     else:
-        st.info("No follow-up has been logged for this contact yet.")
-
-    return fiche
+        st.info("No SCBSM interaction has been logged yet.")
 
 
-def _render_follow_up_form(context, default_contact_id: str) -> None:
-    st.subheader("Contact follow-up")
-    history = get_contact_history(context.events, context.assets, default_contact_id)
-    if not history.empty:
-        st.caption("Latest follow-ups for the selected contact are shown in the fiche above.")
-
-    contact_options = {
-        f"{row.full_name} ({row.company})": row.contact_id
-        for row in context.contacts.itertuples(index=False)
-    }
-    contact_labels = list(contact_options.keys())
-    default_label = next(
-        (label for label, contact_id in contact_options.items() if contact_id == default_contact_id),
-        contact_labels[0],
-    )
-
+def _render_follow_up_form(context) -> None:
+    st.subheader("Log SCBSM follow-up")
     with st.form("follow_up_form"):
-        contact_label = st.selectbox(
-            "Contact",
-            options=contact_labels,
-            index=contact_labels.index(default_label),
-        )
         channel = st.selectbox("Channel", options=["email", "phone", "meeting", "linkedin"])
         outcome = st.selectbox("Outcome", options=["positive", "neutral", "no_reply", "not_now"])
         event_date = st.date_input("Event date", value=date.today())
@@ -193,157 +303,300 @@ def _render_follow_up_form(context, default_contact_id: str) -> None:
         next_action_date = st.date_input("Next action date", value=date.today()) if use_next_action else None
         notes = st.text_area(
             "Notes",
-            placeholder="What was sent, what the contact said, and what the next move should be.",
+            placeholder="What was sent, how SCBSM reacted, and what the next move should be.",
         )
         submitted = st.form_submit_button("Log follow-up")
 
     if submitted:
-        contact_id = contact_options[contact_label]
         log_follow_up(
-            contact_id=contact_id,
-            asset_id=str(context.selected_asset["asset_id"]),
+            deal=context.current_deal,
             event_date=event_date.isoformat(),
             channel=channel,
             outcome=outcome,
             next_action_date=next_action_date.isoformat() if next_action_date else None,
-            owner="Jean",
+            owner=context.scbsm_profile["owner"],
             notes=notes.strip(),
         )
-        st.success("Follow-up logged.")
+        st.success("SCBSM follow-up logged.")
         st.rerun()
 
 
-def _render_methodology_note() -> None:
-    if not YIELD_EXTRACTION_NOTE_PATH.exists():
+def _format_staged_mandate_label(row: pd.Series) -> str:
+    received_at = pd.to_datetime(row["received_at"], errors="coerce")
+    received_label = received_at.strftime("%Y-%m-%d %H:%M") if pd.notna(received_at) else "unknown time"
+    return (
+        f"{row['mandate_name']} | {row['asset_type']} | {row['zone']} | "
+        f"EUR {float(row['ticket_eur_mn']):,.1f}m | {received_label}"
+    )
+
+
+def _render_inbound_mandates(context) -> None:
+    st.subheader("Inbound mandates")
+    st.caption("These rows are fed by the FastAPI sidecar through `POST /mandates/staging` and remain staged until loaded.")
+
+    staged = context.staged_mandates.copy()
+    if staged.empty:
+        st.info("No staged mandates have been received yet.")
+    else:
+        display = staged[
+            [
+                "received_at",
+                "staged_mandate_id",
+                "mandate_name",
+                "asset_type",
+                "country",
+                "zone",
+                "city",
+                "ticket_eur_mn",
+                "cap_rate_pct",
+                "status",
+                "source",
+            ]
+        ].rename(
+            columns={
+                "received_at": "Received at",
+                "staged_mandate_id": "Stage ID",
+                "mandate_name": "Mandate",
+                "asset_type": "Asset type",
+                "country": "Country",
+                "zone": "Zone",
+                "city": "City",
+                "ticket_eur_mn": "Ticket (EUR mn)",
+                "cap_rate_pct": "Cap rate",
+                "status": "Status",
+                "source": "Source",
+            }
+        )
+        st.dataframe(display, use_container_width=True, hide_index=True)
+
+        stage_lookup = {
+            _format_staged_mandate_label(row): row["staged_mandate_id"]
+            for _, row in staged.iterrows()
+        }
+        selected_label = st.selectbox("Mandate to load", options=list(stage_lookup.keys()))
+        staged_id = stage_lookup[selected_label]
+        staged_row = staged.loc[staged["staged_mandate_id"].eq(staged_id)].iloc[0]
+        st.caption(
+            f"Source: `{staged_row['source'] or 'n/a'}` | Notes: `{staged_row['notes'] or 'n/a'}` | "
+            f"Status: `{staged_row['status']}`"
+        )
+
+        if st.button("Load staged mandate into the working screen", use_container_width=True):
+            payload = load_staged_mandate_into_working_set(staged_id)
+            _set_current_deal_state(payload)
+            st.session_state["current_mandate_source"] = f"staged:{staged_id}"
+            st.rerun()
+
+    with st.expander("HTTP intake example", expanded=False):
+        st.code(
+            """curl -X POST http://127.0.0.1:8000/mandates/staging ^
+  -H "Content-Type: application/json" ^
+  -d "{\"mandate_name\":\"Rue de Rivoli office\",\"asset_type\":\"Office\",\"country\":\"France\",\"zone\":\"Paris\",\"city\":\"Paris\",\"ticket_eur_mn\":42.0,\"cap_rate_pct\":4.9,\"size_sqm\":6200,\"transaction_date\":\"2026-04-15\",\"source\":\"manual test\",\"notes\":\"queued from local prototype\"}" """,
+            language="powershell",
+        )
+
+
+def _render_portfolio_context(context) -> None:
+    st.subheader("SCBSM portfolio context")
+    profile = context.scbsm_profile
+    assets = context.assets.copy()
+
+    head_left, head_right = st.columns(2, gap="large")
+    with head_left:
+        st.markdown("**Profile**")
+        st.write(f"Display name: `{profile['display_name']}`")
+        st.write(f"Top zone: `{profile['top_zone']}`")
+        st.write(f"Top asset class: `{profile['top_asset_class']}`")
+        st.write(f"Portfolio fair value: EUR {profile['total_fair_value_eur_mn']:,.1f}m")
+        st.write(f"Weighted cap rate: {profile['weighted_cap_rate_pct']:.2f}%")
+        st.write(f"Cap rate range: {profile['min_cap_rate_pct']:.2f}% to {profile['max_cap_rate_pct']:.2f}%")
+
+    with head_right:
+        st.markdown("**Mix tables**")
+        zone_mix = (
+            assets.groupby("zone", as_index=False)["fair_value_eur_mn"]
+            .agg(["count", "sum"])
+            .reset_index()
+            .rename(columns={"count": "Asset count", "sum": "Fair value (EUR mn)"})
+        )
+        asset_mix = (
+            assets.groupby("asset_class", as_index=False)["fair_value_eur_mn"]
+            .agg(["count", "sum"])
+            .reset_index()
+            .rename(columns={"count": "Asset count", "sum": "Fair value (EUR mn)"})
+        )
+        mix_left, mix_right = st.columns(2)
+        mix_left.dataframe(zone_mix, use_container_width=True, hide_index=True)
+        mix_right.dataframe(asset_mix, use_container_width=True, hide_index=True)
+
+    st.markdown("**Disclosed SCBSM assets**")
+    display = assets[
+        [
+            "asset_id",
+            "asset_name",
+            "asset_class",
+            "city",
+            "zone",
+            "fair_value_eur_mn",
+            "cap_rate_range_pct",
+            "yield_mid_pct",
+        ]
+    ].rename(
+        columns={
+            "asset_id": "Asset ID",
+            "asset_name": "Asset",
+            "asset_class": "Asset class",
+            "city": "City",
+            "zone": "Zone",
+            "fair_value_eur_mn": "Fair value (EUR mn)",
+            "cap_rate_range_pct": "Public cap-rate band",
+            "yield_mid_pct": "Yield midpoint",
+        }
+    )
+    st.dataframe(display, use_container_width=True, hide_index=True)
+
+
+def _render_reference_benchmark(benchmark_frame: pd.DataFrame, asset_type: str, country: str, query_size_sqm: float) -> None:
+    st.subheader("Reference benchmark")
+    st.caption("Transparent benchmark, not a prediction.")
+
+    cell = benchmark_frame.loc[
+        benchmark_frame["asset_type"].eq(asset_type) & benchmark_frame["country"].eq(country)
+    ].copy()
+    if cell.empty:
+        st.warning("No exact asset-type by country benchmark cell exists for this query.")
         return
-    with st.expander("Yield extraction methodology", expanded=False):
-        st.markdown(YIELD_EXTRACTION_NOTE_PATH.read_text(encoding="utf-8"))
+
+    row = cell.iloc[0]
+    left, right, third = st.columns(3)
+    left.metric("Median price per sqm", f"EUR {row['median_price_per_sqm_eur']:,.0f}")
+    right.metric("Cell sample size", f"{int(row['sample_size'])}")
+    third.metric("Reference deal size", f"EUR {(row['median_price_per_sqm_eur'] * query_size_sqm / 1_000_000):,.1f}m")
+
+
+def _render_comparable_module(prefill_asset_type: str, prefill_country: str, prefill_city: str, prefill_size: float) -> None:
+    st.subheader("Comparable Retrieval / AVM module")
+    st.caption(
+        "This is the existing comparable-retrieval proof of concept. It returns the closest anonymised comparables "
+        "and a transparent naive benchmark."
+    )
+
+    try:
+        comps, metadata, benchmark_frame = load_comparable_artifacts()
+    except FileNotFoundError as error:
+        st.error(str(error))
+        return
+
+    weights = metadata["retrieval_scoring"]["weights"]
+    asset_type_options = metadata["asset_type_levels"]
+    country_options = metadata["country_group_levels"]
+    default_asset = prefill_asset_type if prefill_asset_type in asset_type_options else asset_type_options[0]
+    default_country = prefill_country if prefill_country in country_options else country_options[0]
+
+    comp_left, comp_right = st.columns([0.8, 1.2], gap="large")
+    with comp_left:
+        asset_type = st.selectbox(
+            "Comparable asset type",
+            options=asset_type_options,
+            index=asset_type_options.index(default_asset),
+            key="comp_asset_type",
+        )
+        country = st.selectbox(
+            "Comparable country",
+            options=country_options,
+            index=country_options.index(default_country),
+            key="comp_country",
+        )
+        city = st.text_input("City note", value=prefill_city or "Paris", key="comp_city")
+        size_sqm = st.number_input("Approximate size (sqm)", min_value=100.0, value=float(prefill_size), step=100.0, key="comp_size")
+        transaction_date = st.date_input("Comparable transaction date", value=date.today(), key="comp_date")
+        st.caption(f"City note `{city}` is stored for context but not passed to the current matching engine.")
+
+    ranked = _score_comparables(
+        comps=comps,
+        asset_type=asset_type,
+        country=country,
+        query_year=transaction_date.year,
+        query_size_sqm=float(size_sqm),
+        weights=weights,
+    )
+    display_frame = _display_comp_table(ranked.head(10))
+
+    with comp_right:
+        st.dataframe(display_frame, use_container_width=True, hide_index=True)
+        st.download_button(
+            label="Download retrieved comparables",
+            data=_csv_download_bytes(display_frame),
+            file_name="retrieved_comparables.csv",
+            mime="text/csv",
+        )
+        _render_reference_benchmark(
+            benchmark_frame=benchmark_frame,
+            asset_type=asset_type,
+            country=country,
+            query_size_sqm=float(size_sqm),
+        )
+
+
+def _render_method_note() -> None:
+    st.subheader("Method and data gap")
+    st.write(
+        "This version of the prototype is intentionally narrow: one mandate is evaluated against one investor, SCBSM. "
+        "The investor profile is derived from SCBSM's disclosed portfolio rather than from a broader outreach registry."
+    )
+    st.write(
+        "HTTP mandate intake was added as a staging layer so new opportunities can enter the system in structured form. "
+        "That staging queue is visible in the app, and a mandate only becomes the active working case when the analyst loads it."
+    )
+    st.write(
+        "The comparable-retrieval module remains separate. It provides valuation context, while the SCBSM module tests the "
+        "single-investor outreach workflow."
+    )
+    if YIELD_EXTRACTION_NOTE_PATH.exists():
+        with st.expander("Public yield extraction note", expanded=False):
+            st.markdown(YIELD_EXTRACTION_NOTE_PATH.read_text(encoding="utf-8"))
 
 
 def main() -> None:
-    st.set_page_config(page_title="Outreach Selection Console", layout="wide")
+    st.set_page_config(page_title="Alantra x SCBSM Mandate Fit Prototype", layout="wide")
     bootstrap_outreach_environment()
 
-    context = load_dashboard_context(asset_id=st.session_state.get("selected_asset_id"))
-    asset_options = {
-        f"{row.asset_name} | {row.zone} | EUR {row.fair_value_eur_mn:,.1f}m": row.asset_id
-        for row in context.assets.itertuples(index=False)
-    }
-    asset_labels = list(asset_options.keys())
-    current_asset_label = next(
-        (label for label, asset_id in asset_options.items() if asset_id == context.selected_asset["asset_id"]),
-        asset_labels[0],
+    deal_input = _deal_input_sidebar()
+    context = load_dashboard_context(deal_input=deal_input)
+    _render_platform_summary(context)
+    _render_deal_summary(context.current_deal)
+
+    tabs = st.tabs(
+        [
+            "SCBSM Fit",
+            "Inbound Mandates",
+            "SCBSM Portfolio",
+            "Comparable Retrieval",
+            "Method",
+        ]
     )
-
-    with st.sidebar:
-        st.title("Outreach console")
-        asset_label = st.selectbox(
-            "Asset in scope",
-            options=asset_labels,
-            index=asset_labels.index(current_asset_label),
-        )
-        top_k = st.slider("Top contacts to display", min_value=5, max_value=12, value=TOP_K_DEFAULT)
-        fit_filter = st.multiselect("Fit label", options=["High", "Medium", "Low"], default=["High", "Medium", "Low"])
-        st.caption("The ranking combines geography, asset focus, ticket size, target yield, relationship history, and cooldown.")
-
-    selected_asset_id = asset_options[asset_label]
-    if selected_asset_id != context.selected_asset["asset_id"]:
-        st.session_state["selected_asset_id"] = selected_asset_id
-        context = load_dashboard_context(asset_id=selected_asset_id)
-
-    ranked = context.ranked_contacts.loc[context.ranked_contacts["fit_label"].isin(fit_filter)].copy()
-    if ranked.empty:
-        ranked = context.ranked_contacts.copy()
-
-    default_contact_id = st.session_state.get("selected_contact_id")
-    ranked_contact_ids = ranked["contact_id"].tolist()
-    if default_contact_id not in ranked_contact_ids:
-        default_contact_id = ranked_contact_ids[0]
-
-    st.title("Outreach Selection and Follow-up")
-    st.caption(
-        "This Streamlit app ranks who to contact for a selected asset, keeps a lightweight local outreach database, "
-        "and surfaces a full fiche for the contact you want to work."
-    )
-
-    _render_asset_summary(context.selected_asset)
-
-    left, right = st.columns([1.25, 1.0], gap="large")
-    with left:
-        ranking_display = _render_ranked_contacts(ranked, top_k=top_k)
-        contact_lookup = {
-            f"{row.full_name} | {row.company} | score {row.outreach_score:.1f}": row.contact_id
-            for row in ranked.head(top_k).itertuples(index=False)
-        }
-        selected_label = next(
-            (label for label, contact_id in contact_lookup.items() if contact_id == default_contact_id),
-            next(iter(contact_lookup)),
-        )
-        chosen_label = st.selectbox(
-            "Contact to inspect",
-            options=list(contact_lookup.keys()),
-            index=list(contact_lookup.keys()).index(selected_label),
-        )
-        selected_contact_id = contact_lookup[chosen_label]
-        st.session_state["selected_contact_id"] = selected_contact_id
-
-        st.download_button(
-            label="Download ranked contacts",
-            data=_csv_download_bytes(ranking_display),
-            file_name=f"{context.selected_asset['asset_id']}_ranked_contacts.csv",
-            mime="text/csv",
-        )
-
-    with right:
-        _render_contact_fiche(asset_id=str(context.selected_asset["asset_id"]), contact_id=selected_contact_id)
-
-    tabs = st.tabs(["Follow-ups", "Database", "Method"])
 
     with tabs[0]:
-        _render_follow_up_form(context, default_contact_id=selected_contact_id)
+        _render_scbsm_evaluation(context)
+        st.divider()
+        _render_follow_up_form(context)
 
     with tabs[1]:
-        st.subheader("Database snapshot")
-        db_left, db_right = st.columns(2)
-        with db_left:
-            st.markdown("**Assets**")
-            st.dataframe(
-                context.assets[
-                    ["asset_id", "asset_name", "zone", "asset_class", "fair_value_eur_mn", "cap_rate_range_pct"]
-                ].rename(
-                    columns={
-                        "asset_id": "Asset ID",
-                        "asset_name": "Asset",
-                        "zone": "Zone",
-                        "asset_class": "Class",
-                        "fair_value_eur_mn": "Value (EUR mn)",
-                        "cap_rate_range_pct": "Yield band",
-                    }
-                ),
-                use_container_width=True,
-                hide_index=True,
-            )
-        with db_right:
-            st.markdown("**Contacts**")
-            st.dataframe(
-                context.contacts[
-                    ["contact_id", "full_name", "company", "zone_focus", "asset_focus", "relationship_stage"]
-                ].rename(
-                    columns={
-                        "contact_id": "Contact ID",
-                        "full_name": "Name",
-                        "company": "Company",
-                        "zone_focus": "Zone focus",
-                        "asset_focus": "Asset focus",
-                        "relationship_stage": "Stage",
-                    }
-                ),
-                use_container_width=True,
-                hide_index=True,
-            )
+        _render_inbound_mandates(context)
 
     with tabs[2]:
-        _render_methodology_note()
+        _render_portfolio_context(context)
+
+    with tabs[3]:
+        _render_comparable_module(
+            prefill_asset_type=context.current_deal.asset_type,
+            prefill_country=context.current_deal.country,
+            prefill_city=context.current_deal.city,
+            prefill_size=context.current_deal.size_sqm,
+        )
+
+    with tabs[4]:
+        _render_method_note()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+{
+  "investor_id": "scbsm",
+  "company": "SCBSM",
+  "display_name": "SCBSM Portfolio Prototype",
+  "title": "Single-investor prototype derived from the disclosed SCBSM portfolio",
+  "country_focus": "France",
+  "preferred_channel": "email",
+  "owner": "Jean",
+  "qualitative_focus": "SCBSM is treated as the single investor in scope for this prototype, with fit derived from its disclosed French asset portfolio and public cap-rate context.",
+  "notes": "Canonical investor fit is derived from seed_assets.csv. This JSON only stores qualitative metadata that the public portfolio does not contain."
+}
