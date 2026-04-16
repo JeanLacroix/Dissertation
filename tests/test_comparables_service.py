@@ -41,6 +41,9 @@ class ComparablesServiceTests(TestCase):
         self.assertEqual(len(result["results"]), 10)
         self.assertTrue((result["results"]["primary_asset_type"] == "Office").all())
         self.assertGreaterEqual(result["benchmark"]["sample_size"], 5)
+        self.assertTrue(result["dataset_status"]["available_dataset_only"])
+        self.assertFalse(result["dataset_status"]["mock_data_used"])
+        self.assertIn("No mock or synthetic", result["dataset_status"]["dataset_note"])
 
     def test_retrieve_comparables_widens_when_exact_pool_is_thin(self) -> None:
         result = retrieve_comparables(
@@ -59,6 +62,7 @@ class ComparablesServiceTests(TestCase):
         self.assertNotEqual(result["retrieval_scope"], "Type x country")
         self.assertEqual(len(result["results"]), 10)
         self.assertTrue(result["benchmark"]["thin_cell"])
+        self.assertTrue(result["dataset_status"]["coverage_flag"])
 
     def test_format_comparable_results_returns_expected_columns(self) -> None:
         result = retrieve_comparables(

@@ -1,3 +1,1 @@
-event_id,investor_id,mandate_name,deal_asset_type,deal_zone,deal_city,deal_ticket_eur_mn,deal_cap_rate_pct,event_date,channel,outcome,next_action_date,owner,notes
-e001,scbsm,Poissonniere office disposal,Office,Paris,Paris,121.3,4.75,2026-03-25,email,positive,2026-04-20,Jean,Prototype discussion logged against SCBSM for a large Paris office situation.
-e002,scbsm,Elysee Village retail process,Retail,IDF,La Celle Saint Cloud,13.5,8.10,2026-04-10,phone,neutral,2026-04-28,Jean,Recorded a retail fit discussion with SCBSM to test how non-core mandates should be qualified.
+event_id,investor_id,mandate_name,deal_asset_type,deal_zone,deal_city,price_min_eur_mn,price_max_eur_mn,deal_ticket_eur_mn,deal_cap_rate_pct,event_date,touchpoint_type,status_value,owner,notes,created_at_utc,backdated_flag

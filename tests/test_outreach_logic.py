@@ -12,7 +12,7 @@ from src.backend.outreach_scoring import (
     derive_scbsm_profile,
     score_scbsm_for_deal,
 )
-from src.backend.outreach_service import build_deal_input, log_touchpoint, validate_profile_payload
+from src.backend.outreach_service import build_deal_input, create_mock_mandate, log_touchpoint, validate_profile_payload
 from src.backend.paths import SEED_ASSETS_PATH
 
 
@@ -97,6 +97,29 @@ class OutreachLogicTests(TestCase):
         self.assertEqual(event_id, "evt_test")
         self.assertTrue(mock_append.call_args.kwargs["backdated_flag"])
         self.assertEqual(mock_append.call_args.kwargs["touchpoint_type"], "teaser_sent")
+
+    def test_create_mock_mandate_stages_and_marks_loaded(self) -> None:
+        payload = {
+            "mandate_name": "Mock mandate",
+            "asset_type": "Office",
+            "country": "France",
+            "zone": "Paris",
+            "city": "Paris",
+            "price_min_eur_mn": 20.0,
+            "price_max_eur_mn": 30.0,
+            "size_sqm": 4000.0,
+        }
+
+        with (
+            patch("src.backend.outreach_service.stage_mandate", return_value="mdt_test") as mock_stage,
+            patch("src.backend.outreach_service.mark_staged_mandate_loaded") as mock_mark_loaded,
+        ):
+            mandate_id = create_mock_mandate(payload=payload, lead_banker="A Banker")
+
+        self.assertEqual(mandate_id, "mdt_test")
+        self.assertEqual(mock_stage.call_args.kwargs["source"], "streamlit_mock")
+        self.assertIn("Lead banker: A Banker.", mock_stage.call_args.kwargs["notes"])
+        mock_mark_loaded.assert_called_once_with("mdt_test")
 
     def test_score_scbsm_for_default_deal_is_strong_match(self) -> None:
         assets = _load_assets_frame()
