@@ -18,11 +18,15 @@ from model.pipeline import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+COMPS_SAMPLE_PATH = PROJECT_ROOT / "model" / "artifacts" / "comps_sample.parquet"
 SCENARIO_RESULTS_PATH = PROJECT_ROOT / "model" / "artifacts" / "scenario_analysis" / "scenario_results.csv"
 
 ASSET_TYPE_MAP = {
     "Mixed Commercial": "Mixed Use",
 }
+
+PRICE_BUCKET_BINS = [0, 5, 10, 25, 50, 100, 250, 500, 1_000, np.inf]
+PRICE_PER_SQM_BUCKET_BINS = [0, 1_000, 2_000, 3_000, 5_000, 7_500, 10_000, 15_000, 25_000, np.inf]
 
 
 @dataclass(frozen=True)
@@ -44,9 +48,85 @@ def _normalise_asset_type(value: str) -> str:
     return ASSET_TYPE_MAP.get(token, token)
 
 
+def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
+    labels: list[str] = []
+    for lower, upper in zip(bins[:-1], bins[1:]):
+        if np.isinf(upper):
+            labels.append(f"{int(lower):,}+ {unit}")
+        else:
+            labels.append(f"{int(lower):,}-{int(upper):,} {unit}")
+    return labels
+
+
+def _bucket_midpoints(bins: list[float]) -> list[float]:
+    midpoints: list[float] = []
+    for lower, upper in zip(bins[:-1], bins[1:]):
+        if np.isinf(upper):
+            midpoints.append(float(lower * 1.25))
+        else:
+            midpoints.append(float((lower + upper) / 2.0))
+    return midpoints
+
+
+def _bucket_midpoint_map(bins: list[float], unit: str) -> dict[str, float]:
+    return dict(zip(_format_bucket_labels(bins, unit), _bucket_midpoints(bins)))
+
+
+def _load_anonymised_comps_sample() -> pd.DataFrame:
+    if not COMPS_SAMPLE_PATH.exists():
+        raise FileNotFoundError(
+            "No comparable dataset is available. Commit the raw Preqin workbook or "
+            f"the public artifact at {COMPS_SAMPLE_PATH.relative_to(PROJECT_ROOT)}."
+        )
+
+    sample = pd.read_parquet(COMPS_SAMPLE_PATH)
+    price_midpoints = _bucket_midpoint_map(PRICE_BUCKET_BINS, "EUR mn")
+    price_per_sqm_midpoints = _bucket_midpoint_map(PRICE_PER_SQM_BUCKET_BINS, "EUR/sqm")
+
+    size_sqm = pd.to_numeric(sample["size_bucket_mid_sqm"], errors="coerce")
+    deal_size_eur_mn = sample["price_bucket"].map(price_midpoints).astype(float)
+    price_per_sqm_eur = sample["price_per_sqm_bucket"].map(price_per_sqm_midpoints).astype(float)
+    deal_size_eur_mn = deal_size_eur_mn.fillna(price_per_sqm_eur * size_sqm / 1_000_000)
+    transaction_year = pd.to_numeric(sample["year_bucket_order"], errors="coerce").astype("Int64")
+
+    frame = pd.DataFrame(
+        {
+            "DEAL ID": [f"ANON-{index + 1:04d}" for index in range(len(sample))],
+            "DEAL NAME": [
+                f"Anonymised {asset_type} comparable {index + 1:04d}"
+                for index, asset_type in enumerate(sample["asset_type"].astype(str))
+            ],
+            "DEAL DATE": pd.to_datetime(transaction_year.astype(str) + "-06-30", errors="coerce"),
+            "DEAL TYPE": "Single Asset",
+            "PRIMARY ASSET TYPE": sample["asset_type"].astype(str),
+            "ASSET REGIONS": "Europe",
+            "ASSET COUNTRIES": sample["country"].astype(str),
+            "ASSET CITIES": "",
+            "DEAL SIZE (EUR MN)": deal_size_eur_mn,
+            "TOTAL SIZE (SQ. M.)": size_sqm,
+            "INITIAL CAPITALIZATION RATE (%)": np.nan,
+            "country": sample["country"].astype(str),
+            "country_group": sample["country"].astype(str),
+            "primary_asset_type": sample["asset_type"].astype(str),
+            "asset_city": "",
+            "transaction_year": transaction_year,
+            "transaction_quarter": transaction_year.astype(str) + "Q2",
+            "price_per_sqm_eur": price_per_sqm_eur,
+            "price_per_sqm_winsorized_eur": price_per_sqm_eur,
+            "deal_size_winsorized_eur_mn": deal_size_eur_mn,
+            "log_total_size_sqm": np.log(size_sqm.clip(lower=1.0)),
+            "log_deal_size_eur_mn": np.log(deal_size_eur_mn.clip(lower=0.001)),
+        }
+    )
+    return frame.reset_index(drop=True)
+
+
 @lru_cache(maxsize=1)
 def load_prepared_comparables() -> pd.DataFrame:
-    frame = filter_preqin_transactions(load_preqin_transactions()).copy()
+    if DEFAULT_PREQIN_PATH.exists():
+        frame = filter_preqin_transactions(load_preqin_transactions()).copy()
+    else:
+        frame = _load_anonymised_comps_sample()
     frame["primary_asset_type"] = frame["primary_asset_type"].astype(str)
     frame["country"] = frame["country"].astype(str)
     frame["country_group"] = frame["country_group"].astype(str)
@@ -78,16 +158,24 @@ def available_comparable_countries() -> list[str]:
 @lru_cache(maxsize=1)
 def comparable_dataset_status() -> dict[str, Any]:
     frame = load_prepared_comparables()
+    using_raw_source = DEFAULT_PREQIN_PATH.exists()
+    source_file = DEFAULT_PREQIN_PATH.name if using_raw_source else COMPS_SAMPLE_PATH.name
+    dataset_note = (
+        "Comparable retrieval runs only on the currently available transaction dataset. "
+        "No mock or synthetic completeness-benchmark data are used in selection."
+        if using_raw_source
+        else (
+            "Comparable retrieval runs on the committed anonymised deployment artifact because "
+            "the raw Preqin workbook is not available in this environment."
+        )
+    )
     return {
         "source_label": "Available Preqin single-asset transaction dataset",
-        "source_file": DEFAULT_PREQIN_PATH.name,
+        "source_file": source_file,
         "available_rows": int(len(frame)),
         "available_dataset_only": True,
         "mock_data_used": False,
-        "dataset_note": (
-            "Comparable retrieval runs only on the currently available transaction dataset. "
-            "No mock or synthetic completeness-benchmark data are used in selection."
-        ),
+        "dataset_note": dataset_note,
     }
 
 

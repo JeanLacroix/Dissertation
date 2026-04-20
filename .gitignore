@@ -6,6 +6,8 @@ __pycache__/
 
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/Preqin_RealEstate_Deals-13_04_2026.xlsx
+!data/raw/Data_test_2_cap_IQ_since_2021.xls
 
 data/indices/*
 !data/indices/.gitkeep
