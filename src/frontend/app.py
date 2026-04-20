@@ -47,12 +47,10 @@ INVESTOR_VALIDATION_TOP_N = 6
 
 SCREENS = [
     ("dashboard", "Dashboard"),
-    ("new-mandate", "New Mandate"),
+    ("mandates",  "Mandates"),
     ("investors", "Investors"),
-    ("investor-validation", "Investor Validation"),
-    ("comparables", "Comparables"),
-    ("outreach-log", "Outreach Log"),
 ]
+_SUB_SCREENS = {"investor-validation", "comparables", "outreach-log", "new-mandate"}
 
 DEAL_FIELD_KEYS = {
     "mandate_name": "deal_mandate_name",
@@ -705,7 +703,7 @@ def _outreach_history_frame(history: pd.DataFrame, *, include_example_if_empty: 
 
 def _normalise_screen(value: Any) -> str:
     selected = str(value or "dashboard").strip().lower()
-    valid = {slug for slug, _ in SCREENS}
+    valid = {slug for slug, _ in SCREENS} | _SUB_SCREENS
     return selected if selected in valid else "dashboard"
 
 
@@ -987,39 +985,55 @@ html, body, [class*="css"] {
 }
 .adi-shell {
   background: var(--adi-primary);
-  border-radius: 16px;
-  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  padding: 0.85rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
   margin-top: 0.25rem;
   margin-bottom: 1.1rem;
+  border-left: 4px solid #5fa87a;
 }
 .adi-brand {
   color: rgba(255, 255, 255, 0.96);
   font-size: 1.04rem;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.01em;
+}
+.adi-proto-badge {
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  margin-left: 0.6rem;
+  vertical-align: middle;
 }
 .adi-nav {
   display: flex;
   gap: 0.9rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
 }
 .adi-nav a {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.72);
   text-decoration: none;
-  font-size: 0.93rem;
+  font-size: 0.9rem;
   font-weight: 500;
   border-bottom: 2px solid transparent;
-  padding-bottom: 0.2rem;
+  padding-bottom: 0.18rem;
+  letter-spacing: 0.01em;
 }
 .adi-nav a:hover,
 .adi-nav a.adi-nav-active {
   color: rgba(255, 255, 255, 1);
-  border-bottom-color: #d1e6d4;
+  border-bottom-color: #7ec997;
 }
 .adi-section-intro {
   margin: 0 0 1rem 0;
@@ -1027,15 +1041,16 @@ html, body, [class*="css"] {
 .adi-section-intro h1 {
   margin: 0;
   color: var(--adi-text);
-  font-size: 1.72rem;
-  font-weight: 650;
+  font-size: 1.65rem;
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 .adi-section-intro p {
   margin: 0.38rem 0 0 0;
   max-width: 740px;
   color: var(--adi-muted);
-  font-size: 0.97rem;
+  font-size: 0.95rem;
+  font-weight: 400;
   line-height: 1.55;
 }
 .adi-grid {
@@ -1051,11 +1066,13 @@ html, body, [class*="css"] {
 .adi-card {
   background: var(--adi-surface);
   border: 1px solid var(--adi-border);
-  border-radius: 14px;
+  border-radius: 8px;
+  border-left: 3px solid var(--adi-primary);
   padding: 1rem 1.05rem;
 }
 .adi-card--accent {
   background: var(--adi-mint);
+  border-left-color: #3d8a5e;
 }
 .adi-card-label {
   color: var(--adi-muted);
@@ -1078,9 +1095,10 @@ html, body, [class*="css"] {
 }
 .adi-subtitle {
   color: var(--adi-text);
-  font-size: 1.05rem;
-  font-weight: 650;
+  font-size: 1.08rem;
+  font-weight: 700;
   margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
 }
 .adi-field-label {
   margin: 0 0 0.28rem 0;
@@ -1199,7 +1217,11 @@ html, body, [class*="css"] {
   padding: 0.78rem 0.72rem;
   border-bottom: 1px solid #edf2ec;
   color: var(--adi-text);
+  font-weight: 400;
   vertical-align: top;
+}
+.adi-table tbody tr:nth-child(even) td {
+  background: #f7faf7;
 }
 .adi-table tbody tr:last-child td {
   border-bottom: none;
@@ -1227,12 +1249,18 @@ div[data-baseweb="textarea"] > div:focus-within {
 [data-testid="stDownloadButton"] button,
 .stFormSubmitButton button {
   width: 100%;
-  border-radius: 10px;
-  border: 1px solid var(--adi-primary);
-  background: var(--adi-primary);
+  border-radius: 6px;
+  border: 1px solid #2a5c48;
+  background: #2a5c48;
   color: var(--adi-primary-ink);
-  font-weight: 650;
+  font-weight: 600;
   min-height: 40px;
+  letter-spacing: 0.01em;
+}
+[data-testid="stButton"] button:hover,
+.stFormSubmitButton button:hover {
+  background: #1f4738;
+  border-color: #1f4738;
 }
 @media (max-width: 900px) {
   .adi-grid--three,
@@ -1262,7 +1290,7 @@ def _render_shell() -> None:
     st.markdown(
         (
             "<div class='adi-shell'>"
-            "<div class='adi-brand'>Alantra · Deal Intelligence</div>"
+            "<div class='adi-brand'>Alantra · Deal Intelligence<span class='adi-proto-badge'>prototype</span></div>"
             f"<div class='adi-nav'>{''.join(links)}</div>"
             "</div>"
         ),
@@ -1451,7 +1479,160 @@ def _render_new_mandate_screen() -> None:
         # Only persist the derived hidden city field here, otherwise Streamlit
         # raises when a widget-bound key is reassigned in the same run.
         st.session_state[DEAL_FIELD_KEYS["city"]] = payload["city"]
-        _navigate("investor-validation")
+        _navigate("mandates")
+
+
+def _load_mandate_if_staged(deal_tuple: tuple) -> None:
+    _deal, mandate_id = deal_tuple
+    if mandate_id:
+        payload = load_staged_mandate_into_working_set(mandate_id)
+        _set_current_deal_state(payload)
+
+
+def _render_mandates_screen(context) -> None:
+    _ensure_current_deal_state()
+    _section_intro(
+        "Mandates",
+        "View and manage sell-side mandates. Select a mandate below to run investor validation, retrieve comparables, or log outreach activity.",
+    )
+
+    # Build mandate list and deal map {label: (deal, mandate_id_or_None)}
+    mandate_rows: list[dict] = []
+    mandate_deal_map: dict[str, tuple] = {}
+
+    current_label = f"{context.current_deal.mandate_name} (working)"
+    mandate_rows.append(
+        {
+            "Name": context.current_deal.mandate_name,
+            "Type": context.current_deal.asset_type,
+            "Location": context.current_deal.zone or context.current_deal.country,
+            "Status": _badge("Working", "success"),
+        }
+    )
+    mandate_deal_map[current_label] = (context.current_deal, None)
+
+    if not context.staged_mandates.empty:
+        for _, row in context.staged_mandates.head(5).iterrows():
+            deal = _deal_from_staged_row(row)
+            label = f"{row['mandate_name']} (saved)"
+            mandate_rows.append(
+                {
+                    "Name": row["mandate_name"],
+                    "Type": row["asset_type"],
+                    "Location": str(row.get("zone") or row.get("country", "")),
+                    "Status": _badge("Saved", "mint"),
+                }
+            )
+            mandate_deal_map[label] = (deal, str(row.get("staged_mandate_id", "")))
+
+    with st.container(border=True):
+        st.markdown("<div class='adi-subtitle'>Active mandates</div>", unsafe_allow_html=True)
+        st.markdown(_table_html(pd.DataFrame(mandate_rows)), unsafe_allow_html=True)
+        st.markdown("<div class='adi-divider'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='adi-field-label' style='margin-top:0.6rem'>Select mandate to act on</div>", unsafe_allow_html=True)
+        selected_label = st.selectbox(
+            "Select mandate",
+            options=list(mandate_deal_map.keys()),
+            key="mandates_selected",
+            label_visibility="collapsed",
+        )
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("Investor Validation", use_container_width=True, key="btn_iv"):
+                _load_mandate_if_staged(mandate_deal_map[selected_label])
+                _navigate("investor-validation")
+        with col2:
+            if st.button("Comparables", use_container_width=True, key="btn_comps"):
+                _load_mandate_if_staged(mandate_deal_map[selected_label])
+                _navigate("comparables")
+        with col3:
+            if st.button("Outreach Log", use_container_width=True, key="btn_log"):
+                _load_mandate_if_staged(mandate_deal_map[selected_label])
+                _navigate("outreach-log")
+
+    with st.expander("+ Add New Mandate", expanded=False):
+        st.markdown(
+            _banner_html(
+                "Review before submitting",
+                "Adding a new mandate will save it to the database. Please make sure you double-check all figures before submitting.",
+                tone="warning",
+            ),
+            unsafe_allow_html=True,
+        )
+        with st.container(border=True):
+            with st.form("new_mandate_form_mandates"):
+                row1 = st.columns(2)
+                with row1[0]:
+                    _field_label("Mandate name")
+                    st.text_input("Mandate name", key=DEAL_FIELD_KEYS["mandate_name"], label_visibility="collapsed")
+                with row1[1]:
+                    _field_label("Lead banker")
+                    st.text_input("Lead banker", key=LEAD_BANKER_KEY, label_visibility="collapsed")
+
+                row2 = st.columns(2)
+                with row2[0]:
+                    _field_label("Asset type")
+                    st.selectbox(
+                        "Asset type",
+                        options=["Office", "Retail", "Mixed Commercial", "Industrial", "Hotel", "Residential", "Land"],
+                        key=DEAL_FIELD_KEYS["asset_type"],
+                        label_visibility="collapsed",
+                    )
+                with row2[1]:
+                    _field_label("Location / Zone")
+                    st.text_input("Location", key=DEAL_FIELD_KEYS["zone"], label_visibility="collapsed")
+
+                row3 = st.columns(2)
+                with row3[0]:
+                    _field_label("Size in sqm")
+                    st.number_input("Size in sqm", min_value=100.0, step=100.0, key=DEAL_FIELD_KEYS["size_sqm"], label_visibility="collapsed")
+                with row3[1]:
+                    _field_label("Price range min (EUR m)")
+                    st.number_input("Price min", min_value=0.5, step=1.0, key=DEAL_FIELD_KEYS["price_min_eur_mn"], label_visibility="collapsed")
+
+                row4 = st.columns(2)
+                with row4[0]:
+                    _field_label("Price range max (EUR m)")
+                    st.number_input("Price max", min_value=0.5, step=1.0, key=DEAL_FIELD_KEYS["price_max_eur_mn"], label_visibility="collapsed")
+                with row4[1]:
+                    _field_label("Country")
+                    st.text_input("Country", key=DEAL_FIELD_KEYS["country"], label_visibility="collapsed")
+
+                st.markdown("<div class='adi-divider'></div>", unsafe_allow_html=True)
+                st.markdown("<div class='adi-subtitle' style='font-size:0.9rem'>Optional — income fields</div>", unsafe_allow_html=True)
+
+                row5 = st.columns(2)
+                with row5[0]:
+                    _field_label("Cap rate")
+                    st.checkbox("Cap rate available", key=DEAL_FIELD_KEYS["cap_rate_known"])
+                    if st.session_state[DEAL_FIELD_KEYS["cap_rate_known"]]:
+                        st.number_input("Cap rate", min_value=1.0, max_value=15.0, step=0.05, key=DEAL_FIELD_KEYS["cap_rate_pct"], label_visibility="collapsed")
+                with row5[1]:
+                    _field_label("NOI")
+                    st.checkbox("NOI available", key=DEAL_FIELD_KEYS["noi_known"])
+                    if st.session_state[DEAL_FIELD_KEYS["noi_known"]]:
+                        st.number_input("NOI", min_value=0.1, step=0.1, key=DEAL_FIELD_KEYS["noi_eur_mn"], label_visibility="collapsed")
+
+                row6 = st.columns(2)
+                with row6[0]:
+                    _field_label("Building grade")
+                    st.text_input("Building grade", key=DEAL_FIELD_KEYS["building_grade"], label_visibility="collapsed")
+                with row6[1]:
+                    _field_label("Reference date")
+                    st.date_input("Reference date", key=DEAL_FIELD_KEYS["transaction_date"], label_visibility="collapsed")
+
+                submitted_new = st.form_submit_button("Save mandate to database")
+
+        if submitted_new:
+            payload = _read_current_deal_state()
+            payload["city"] = str(payload.get("city", "")).strip() or str(payload["zone"]).strip()
+            if payload["price_min_eur_mn"] > payload["price_max_eur_mn"]:
+                st.error("Price range min cannot be above price range max.")
+            else:
+                create_mock_mandate(payload=payload, lead_banker=str(st.session_state.get(LEAD_BANKER_KEY, "")))
+                st.session_state[DEAL_FIELD_KEYS["city"]] = payload["city"]
+                st.success("Mandate saved to database.")
+                st.rerun()
 
 
 def _render_registry_admin(context) -> None:
@@ -1628,11 +1809,42 @@ def _render_registry_admin(context) -> None:
 
 def _render_investor_registry_screen(context) -> None:
     _section_intro(
-        "Investor Contacts",
-        "A structured Alantra-held list of potential investor contacts. Validation against the live mandate sits on the investor-validation screen.",
+        "Investors",
+        "Browse the Alantra investor registry. Open a profile to see contact details, or validate an investor against an active mandate.",
     )
 
-    search_value = st.text_input("Search investor contacts", value="", placeholder="Search by company, focus, geography, or contact")
+    # Mandate selector — loads the selected mandate into working session state
+    mandate_options, default_mandate_label = _available_mandate_options(context)
+    mandate_keys = list(mandate_options.keys())
+    col_search, col_mandate = st.columns([2, 2])
+    with col_search:
+        search_value = st.text_input("Search investors", value="", placeholder="Company, focus, geography, or contact…")
+    with col_mandate:
+        st.markdown("<div class='adi-field-label' style='margin-top:0.05rem'>Validate against mandate</div>", unsafe_allow_html=True)
+        selected_mandate_label = st.selectbox(
+            "Validate against mandate",
+            options=mandate_keys,
+            index=mandate_keys.index(default_mandate_label),
+            key="investors_mandate_select",
+            label_visibility="collapsed",
+        )
+    # If a staged mandate was chosen, load it so investor-validation uses correct deal
+    _deal, _mandate_id = mandate_options[selected_mandate_label], None
+    for k, v in mandate_options.items():
+        if k == selected_mandate_label:
+            _deal = v
+            break
+    # Determine if it's a staged mandate (not current deal) and load it
+    if selected_mandate_label != default_mandate_label:
+        if not context.staged_mandates.empty:
+            for _, row in context.staged_mandates.iterrows():
+                deal_check = _deal_from_staged_row(row)
+                if deal_check.mandate_name == _deal.mandate_name:
+                    _set_current_deal_state(
+                        load_staged_mandate_into_working_set(str(row.get("staged_mandate_id", "")))
+                    )
+                    break
+
     contacts_frame = _investor_contacts_frame(context, search_value)
     populated_contacts = len(context.contacts.index)
 
@@ -1647,6 +1859,11 @@ def _render_investor_registry_screen(context) -> None:
             ),
             unsafe_allow_html=True,
         )
+
+    col_add, _ = st.columns([1, 3])
+    with col_add:
+        st.button("+ Add Investor", disabled=True, use_container_width=True)
+    st.caption("Adding investors to the registry is reserved for a later implementation phase.")
 
     _render_registry_admin(context)
 
@@ -2074,6 +2291,8 @@ def main() -> None:
 
     if active_screen == "dashboard":
         _render_dashboard_screen(context)
+    elif active_screen == "mandates":
+        _render_mandates_screen(context)
     elif active_screen == "new-mandate":
         _render_new_mandate_screen()
     elif active_screen == "investors":
