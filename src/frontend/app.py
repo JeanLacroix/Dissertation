@@ -3,12 +3,18 @@ from __future__ import annotations
 import html
 import io
 import json
+import sys
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+PROJECT_ROOT_FOR_IMPORTS = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT_FOR_IMPORTS) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT_FOR_IMPORTS))
 
 from src.backend.comparables_service import (
     ComparableQuery,
