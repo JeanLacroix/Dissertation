@@ -135,6 +135,25 @@ def _load_method_metadata() -> dict[str, Any]:
     return json.loads(METADATA_PATH.read_text(encoding="utf-8"))
 
 
+def _valuation_warning_text(method_metadata: dict[str, Any]) -> str:
+    default = "Point valuation is not reliable here. Use the comp set plus the cell median as a transparent benchmark."
+    valuation = method_metadata.get("valuation_evaluation", {})
+    rolling = valuation.get("rolling_origin", {}) if isinstance(valuation, dict) else {}
+    if not isinstance(rolling, dict):
+        return default
+
+    model_mape = rolling.get("mean_mape_pct")
+    naive_mape = valuation.get("rolling_naive_baseline_mean_mape_pct")
+    if naive_mape is None:
+        naive_mape = rolling.get("baseline_mean_mape_pct")
+    if naive_mape is None:
+        naive_mape = rolling.get("headline_fold_baseline_mape_pct")
+    if model_mape is None or naive_mape is None:
+        return default
+
+    return f"Point valuation rejected. Hedonic rolling-origin MAPE {float(model_mape):.1f}% versus naive {float(naive_mape):.1f}%."
+
+
 def _set_current_deal_state(payload: dict[str, Any]) -> None:
     baseline = build_deal_input(payload).as_dict()
     for field, state_key in DEAL_FIELD_KEYS.items():
@@ -1908,13 +1927,7 @@ def _render_comparables_screen(context) -> None:
         else "N/A"
     )
     method_metadata = _load_method_metadata()
-    warning_text = "Point valuation is not reliable here. Use the comp set plus the cell median as a transparent benchmark."
-    if method_metadata:
-        warning_text = (
-            f"Point valuation rejected. Hedonic rolling-origin MAPE "
-            f"{method_metadata['valuation_evaluation']['rolling_origin']['mean_mape_pct']:.1f}% "
-            f"versus naive {method_metadata['valuation_evaluation']['rolling_naive_baseline_mean_mape_pct']:.1f}%."
-        )
+    warning_text = _valuation_warning_text(method_metadata)
 
     left_card, right_card = st.columns([1.0, 1.35])
     with left_card:
