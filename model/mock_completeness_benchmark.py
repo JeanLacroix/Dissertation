@@ -20,13 +20,18 @@ from .train import (
 
 MOCK_DIR = ARTIFACTS_DIR / "mock_completeness_benchmark"
 BASE_SIGNAL_SHARE = 0.50
-SIGNAL_SHARE_GRID = [0.30, 0.50, 0.70]
+SIGNAL_SHARE_GRID = [0.30, 0.50, 0.70, 0.85, 0.95]
+TARGET_MAPE_PCT = 10.0
 
 SYNTHETIC_FEATURES = [
     "micro_location_score",
     "building_quality_score",
     "lease_quality_score",
     "tenant_covenant_score",
+    "capital_expenditure_need",
+    "refurbishment_potential",
+    "tenant_credit_spread",
+    "rental_growth_forecast",
 ]
 
 MOCK_SPECS = [
@@ -57,6 +62,16 @@ MOCK_SPECS = [
             + " + micro_location_score + building_quality_score + lease_quality_score + tenant_covenant_score"
         ),
     },
+    {
+        "spec_name": "mock_ultra_completeness",
+        "label": "Mock target: observed + 8 synthetic features",
+        "target_mode": "mock",
+        "formula": (
+            CHANGE_D_FORMULA
+            + " + micro_location_score + building_quality_score + lease_quality_score + tenant_covenant_score"
+            + " + capital_expenditure_need + refurbishment_potential + tenant_credit_spread + rental_growth_forecast"
+        ),
+    },
 ]
 
 
@@ -82,22 +97,23 @@ def _build_mock_frame(model_frame: pd.DataFrame, signal_share: float) -> tuple[p
     country_effect = _make_group_effect(frame["country_group"], rng, scale=0.55)
     asset_effect = _make_group_effect(frame["primary_asset_type"], rng, scale=0.50)
     year_effect = _make_group_effect(frame["transaction_year"], rng, scale=0.35)
-    latent_core_1 = rng.normal(0.0, 1.0, size=len(frame))
-    latent_core_2 = rng.normal(0.0, 1.0, size=len(frame))
-    latent_core_3 = rng.normal(0.0, 1.0, size=len(frame))
-    latent_core_4 = rng.normal(0.0, 1.0, size=len(frame))
+    latent_cores = [rng.normal(0.0, 1.0, size=len(frame)) for _ in range(8)]
 
     raw_features = {
-        "micro_location_score": 0.60 * country_effect + 0.35 * year_effect + 0.75 * latent_core_1 + rng.normal(0.0, 0.45, len(frame)),
-        "building_quality_score": 0.45 * asset_effect + 0.40 * year_effect + 0.70 * latent_core_2 + rng.normal(0.0, 0.45, len(frame)),
-        "lease_quality_score": 0.40 * country_effect + 0.45 * asset_effect + 0.65 * latent_core_3 + rng.normal(0.0, 0.45, len(frame)),
-        "tenant_covenant_score": 0.35 * country_effect + 0.30 * year_effect + 0.70 * latent_core_4 + rng.normal(0.0, 0.45, len(frame)),
+        "micro_location_score": 0.60 * country_effect + 0.35 * year_effect + 0.75 * latent_cores[0] + rng.normal(0.0, 0.45, len(frame)),
+        "building_quality_score": 0.45 * asset_effect + 0.40 * year_effect + 0.70 * latent_cores[1] + rng.normal(0.0, 0.45, len(frame)),
+        "lease_quality_score": 0.40 * country_effect + 0.45 * asset_effect + 0.65 * latent_cores[2] + rng.normal(0.0, 0.45, len(frame)),
+        "tenant_covenant_score": 0.35 * country_effect + 0.30 * year_effect + 0.70 * latent_cores[3] + rng.normal(0.0, 0.45, len(frame)),
+        "capital_expenditure_need": 0.20 * asset_effect + 0.15 * country_effect + 0.90 * latent_cores[4] + rng.normal(0.0, 0.40, len(frame)),
+        "refurbishment_potential": 0.15 * asset_effect + 0.90 * latent_cores[5] + rng.normal(0.0, 0.40, len(frame)),
+        "tenant_credit_spread": 0.25 * country_effect + 0.90 * latent_cores[6] + rng.normal(0.0, 0.40, len(frame)),
+        "rental_growth_forecast": 0.20 * country_effect + 0.15 * year_effect + 0.90 * latent_cores[7] + rng.normal(0.0, 0.40, len(frame)),
     }
 
     for feature_name, raw_values in raw_features.items():
         frame[feature_name] = _standardize(np.asarray(raw_values, dtype=float))
 
-    beta_raw = np.array([0.24, 0.18, 0.16, 0.14], dtype=float)
+    beta_raw = np.array([0.24, 0.18, 0.16, 0.14, 0.12, 0.10, 0.09, 0.08], dtype=float)
     z_matrix = frame.loc[:, SYNTHETIC_FEATURES].to_numpy(dtype=float)
     raw_signal = z_matrix @ beta_raw
     target_signal_variance = residual_variance * signal_share
@@ -194,7 +210,7 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
     x = np.arange(len(plot_frame))
     width = 0.34
 
-    fig, ax = plt.subplots(figsize=(10.5, 6))
+    fig, ax = plt.subplots(figsize=(11.5, 6))
     bars_rolling = ax.bar(x - width / 2, plot_frame["rolling_mean_mape_pct"], width=width, color="#1f77b4", label="Rolling-origin mean MAPE")
     bars_headline = ax.bar(x + width / 2, plot_frame["headline_fold_mape_pct"], width=width, color="#ff7f0e", label="2026 headline MAPE")
     ax.axhline(
@@ -210,7 +226,13 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width() / 2, height + 1.2, f"{height:.1f}", ha="center", va="bottom", fontsize=8)
 
-    ax.set_xticks(x, ["Observed only", "+2 synthetic", "+4 synthetic"])
+    spec_labels = {
+        "mock_observed_only": "Observed only",
+        "mock_partial_completeness": "+2 synthetic",
+        "mock_extensive_dataset": "+4 synthetic",
+        "mock_ultra_completeness": "+8 synthetic",
+    }
+    ax.set_xticks(x, [spec_labels.get(name, name) for name in plot_frame["spec_name"].tolist()])
     ax.set_xlabel("Mock completeness benchmark")
     ax.set_ylabel("MAPE (%)")
     ax.set_title("Benchmark precision under a richer-data completeness hypothesis")
@@ -226,16 +248,22 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
 
 def _plot_fold_benchmark(results: pd.DataFrame) -> Path:
     plot_frame = results.loc[
-        results["spec_name"].isin(["mock_observed_only", "mock_partial_completeness", "mock_extensive_dataset"])
+        results["spec_name"].isin([
+            "mock_observed_only",
+            "mock_partial_completeness",
+            "mock_extensive_dataset",
+            "mock_ultra_completeness",
+        ])
         & results["signal_share_of_current_residual_variance"].eq(BASE_SIGNAL_SHARE)
     ].copy()
     x = np.arange(4)
-    width = 0.22
-    colors = ["#9ecae1", "#3182bd", "#08519c"]
+    n_specs = len(plot_frame)
+    width = 0.82 / max(n_specs, 1)
+    colors = ["#c6dbef", "#9ecae1", "#3182bd", "#08519c"][:n_specs]
 
-    fig, ax = plt.subplots(figsize=(10.5, 6))
+    fig, ax = plt.subplots(figsize=(11.5, 6))
     for idx, (_, row) in enumerate(plot_frame.iterrows()):
-        positions = x + (idx - 1) * width
+        positions = x + (idx - (n_specs - 1) / 2) * width
         values = [row[f"fold_{year}_mape_pct"] for year in [2023, 2024, 2025, 2026]]
         bars = ax.bar(positions, values, width=width, color=colors[idx], label=row["label"])
         for bar in bars:
@@ -260,9 +288,10 @@ def _plot_sensitivity_envelope(results: pd.DataFrame) -> Path:
     plot_frame = results.loc[results["target_mode"].eq("mock")].copy()
     x = plot_frame["signal_share_of_current_residual_variance"].astype(float).sort_values().unique()
     spec_order = [
-        ("mock_observed_only", "Observed only", "#9ecae1"),
-        ("mock_partial_completeness", "+2 synthetic", "#3182bd"),
-        ("mock_extensive_dataset", "+4 synthetic", "#08519c"),
+        ("mock_observed_only", "Observed only", "#c6dbef"),
+        ("mock_partial_completeness", "+2 synthetic", "#9ecae1"),
+        ("mock_extensive_dataset", "+4 synthetic", "#3182bd"),
+        ("mock_ultra_completeness", "+8 synthetic", "#08519c"),
     ]
 
     fig, ax = plt.subplots(figsize=(10.5, 6))
@@ -299,19 +328,126 @@ def _plot_sensitivity_envelope(results: pd.DataFrame) -> Path:
     return output_path
 
 
-def _write_readme(generation_summary: dict[str, Any], results: pd.DataFrame) -> Path:
+def _required_log_sigma_for_mape(mape_target_pct: float, samples: int = 500_000) -> float:
+    rng = np.random.default_rng(0)
+    base = rng.standard_normal(samples)
+    target = mape_target_pct / 100.0
+    lower, upper = 1e-4, 3.0
+    for _ in range(60):
+        mid = (lower + upper) / 2.0
+        residuals = base * mid
+        mape = float(np.mean(np.abs(1.0 - np.exp(-residuals))))
+        if mape < target:
+            lower = mid
+        else:
+            upper = mid
+    return (lower + upper) / 2.0
+
+
+def _required_log_r2_for_mape_target(
+    mape_target_pct: float,
+    log_target_variance: float,
+) -> dict[str, float]:
+    sigma = _required_log_sigma_for_mape(mape_target_pct)
+    sigma2 = sigma * sigma
+    r2 = 1.0 - sigma2 / log_target_variance
+    return {
+        "mape_target_pct": float(mape_target_pct),
+        "required_log_residual_sigma": float(sigma),
+        "required_log_residual_variance": float(sigma2),
+        "log_target_variance": float(log_target_variance),
+        "required_log_r2": float(r2),
+    }
+
+
+def _plot_completeness_acceptance_curve(sensitivity_results: pd.DataFrame, target_mape_pct: float) -> Path:
+    spec_order = [
+        ("mock_observed_only", "Observed only", "#c6dbef"),
+        ("mock_partial_completeness", "+2 synthetic", "#9ecae1"),
+        ("mock_extensive_dataset", "+4 synthetic", "#3182bd"),
+        ("mock_ultra_completeness", "+8 synthetic", "#08519c"),
+    ]
+    fig, ax = plt.subplots(figsize=(11, 6.5))
+    for spec_name, label, color in spec_order:
+        spec_frame = (
+            sensitivity_results.loc[sensitivity_results["spec_name"].eq(spec_name)]
+            .sort_values("signal_share_of_current_residual_variance")
+        )
+        if spec_frame.empty:
+            continue
+        ax.plot(
+            spec_frame["signal_share_of_current_residual_variance"],
+            spec_frame["random_5_fold_mean_mape_pct"],
+            marker="o",
+            linewidth=2.2,
+            color=color,
+            label=f"{label} — random 5-fold mean",
+        )
+        for _, row in spec_frame.iterrows():
+            ax.text(
+                float(row["signal_share_of_current_residual_variance"]) + 0.005,
+                float(row["random_5_fold_mean_mape_pct"]) + 1.0,
+                f"{row['random_5_fold_mean_mape_pct']:.1f}",
+                fontsize=8,
+                color=color,
+            )
+
+    ax.axhline(target_mape_pct, color="#e31a1c", linestyle="--", linewidth=1.6, label=f"{target_mape_pct:.0f}% target")
+    ax.set_xlabel("Share of current Change D residual variance explained by synthetic features")
+    ax.set_ylabel("Random 5-fold mean MAPE (%)")
+    ax.set_title(f"Completeness acceptance curve: how close to {target_mape_pct:.0f}% MAPE under richer data")
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(frameon=False, fontsize=9)
+    fig.tight_layout()
+
+    output_path = MOCK_DIR / "completeness_acceptance_curve.png"
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return output_path
+
+
+def _write_readme(generation_summary: dict[str, Any], results: pd.DataFrame, r2_analysis: dict[str, float] | None = None, sensitivity_results: pd.DataFrame | None = None) -> Path:
     observed_row = results.loc[results["spec_name"].eq("mock_observed_only")].iloc[0]
     extensive_row = results.loc[results["spec_name"].eq("mock_extensive_dataset")].iloc[0]
+    ultra_row = results.loc[results["spec_name"].eq("mock_ultra_completeness")].iloc[0]
     real_row = results.loc[results["spec_name"].eq("real_change_d")].iloc[0]
+
+    r2_block = ""
+    if r2_analysis is not None:
+        r2_block = (
+            f"\n## How complete must the data be to reach {r2_analysis['mape_target_pct']:.0f}% random 5-fold MAPE?\n\n"
+            f"Assuming log-price residuals are approximately normal with variance sigma-squared, a "
+            f"random 5-fold mean MAPE of {r2_analysis['mape_target_pct']:.0f}% implies a residual "
+            f"log-sigma of roughly {r2_analysis['required_log_residual_sigma']:.3f} "
+            f"(residual variance {r2_analysis['required_log_residual_variance']:.4f}). The Change D "
+            f"sample has log-target variance {r2_analysis['log_target_variance']:.3f}, so reaching "
+            f"this MAPE requires a log-scale R-squared of at least "
+            f"**{r2_analysis['required_log_r2']:.3f}**. The current Change D deployed fit achieves "
+            f"log-scale R-squared around 0.60, so the observed feature set would need to explain "
+            f"roughly {100.0 * (r2_analysis['required_log_r2'] - 0.60):.0f} additional percentage points "
+            f"of log-price variance relative to today.\n\n"
+        )
+
+    sensitivity_block = ""
+    if sensitivity_results is not None:
+        ultra_sens = sensitivity_results.loc[sensitivity_results["spec_name"].eq("mock_ultra_completeness")]
+        if not ultra_sens.empty:
+            lowest = ultra_sens.sort_values("random_5_fold_mean_mape_pct").iloc[0]
+            sensitivity_block = (
+                f"At signal_share = {lowest['signal_share_of_current_residual_variance']:.0%} with 8 synthetic "
+                f"features, random 5-fold mean MAPE reaches {lowest['random_5_fold_mean_mape_pct']:.1f}%. "
+                f"This is the best case produced by the mock and is still well above the 10% target, "
+                f"which confirms that the observed hedonic feature set alone cannot close the gap.\n\n"
+            )
 
     readme_text = f"""# Mock completeness benchmark
 
-This analysis creates a synthetic richer-data benchmark to estimate what predictive precision could be achievable if materially more deal-level information were observed. The starting point is the existing Change D sample and fitted structure. A mock target is generated as the sum of: (i) the fitted Change D signal already explained by observed covariates, (ii) four synthetic standardised features representing micro-location quality, building quality, lease quality, and tenant covenant strength, and (iii) irreducible noise.
+This analysis creates a synthetic richer-data benchmark to estimate what predictive precision could be achievable if materially more deal-level information were observed. The starting point is the existing Change D sample and fitted structure. A mock target is generated as the sum of: (i) the fitted Change D signal already explained by observed covariates, (ii) up to eight synthetic standardised features (micro-location, building quality, lease quality, tenant covenant, capex need, refurbishment potential, credit spread, rental growth), and (iii) irreducible noise.
 
 The synthetic features are not copied from external data. They are generated with group structure by country, asset type, and year plus idiosyncratic noise, then scaled so that they explain {generation_summary['signal_share_of_current_residual_variance']:.0%} of the current Change D residual variance in the base case. The remaining {generation_summary['irreducible_noise_share_of_current_residual_variance']:.0%} is left as noise.
 
-On the real target, Change D records a rolling-origin mean MAPE of {real_row['rolling_mean_mape_pct']:.1f}%. On the base-case mock target, the observed-feature model records {observed_row['rolling_mean_mape_pct']:.1f}%, while the extensive-data model with all four synthetic features records {extensive_row['rolling_mean_mape_pct']:.1f}%. The script also runs a sensitivity sweep over 30%, 50%, and 70% explainable residual-variance shares. This should be interpreted as a structured sensitivity benchmark rather than as a claim about true achievable production accuracy.
-"""
+On the real target, Change D records a rolling-origin mean MAPE of {real_row['rolling_mean_mape_pct']:.1f}%. On the base-case mock target, the observed-feature model records {observed_row['rolling_mean_mape_pct']:.1f}%, the +4 synthetic-feature model records {extensive_row['rolling_mean_mape_pct']:.1f}%, and the +8 synthetic-feature model records {ultra_row['rolling_mean_mape_pct']:.1f}%. The sensitivity sweep covers 30%, 50%, 70%, 85%, and 95% explainable residual-variance shares. This should be interpreted as a structured sensitivity benchmark rather than as a claim about true achievable production accuracy.
+{r2_block}{sensitivity_block}"""
     output_path = MOCK_DIR / "README.md"
     output_path.write_text(readme_text, encoding="utf-8")
     return output_path
@@ -330,8 +466,9 @@ def main() -> None:
         {
             "real_change_d": np.nan,
             "mock_observed_only": 0.0,
-            "mock_partial_completeness": 0.5,
-            "mock_extensive_dataset": 1.0,
+            "mock_partial_completeness": 0.25,
+            "mock_extensive_dataset": 0.5,
+            "mock_ultra_completeness": 1.0,
         }
     )
     feature_summary = pd.DataFrame(generation_summary["feature_summary"])
@@ -344,8 +481,9 @@ def main() -> None:
             row["signal_share_of_current_residual_variance"] = signal_share
             row["synthetic_feature_completeness_ratio"] = {
                 "mock_observed_only": 0.0,
-                "mock_partial_completeness": 0.5,
-                "mock_extensive_dataset": 1.0,
+                "mock_partial_completeness": 0.25,
+                "mock_extensive_dataset": 0.5,
+                "mock_ultra_completeness": 1.0,
             }[spec["spec_name"]]
             sensitivity_rows.append(row)
     sensitivity_results = pd.DataFrame(sensitivity_rows)
@@ -366,10 +504,16 @@ def main() -> None:
     generation_path = MOCK_DIR / "generation_spec.json"
     generation_path.write_text(json.dumps(generation_summary, indent=2), encoding="utf-8")
 
+    log_target_variance = float(np.var(model_frame["log_deal_size_eur_mn"].to_numpy(dtype=float), ddof=0))
+    r2_analysis = _required_log_r2_for_mape_target(TARGET_MAPE_PCT, log_target_variance)
+    r2_analysis_path = MOCK_DIR / "required_log_r2_for_target_mape.json"
+    r2_analysis_path.write_text(json.dumps(r2_analysis, indent=2), encoding="utf-8")
+
     precision_plot_path = _plot_precision_benchmark(results)
     fold_plot_path = _plot_fold_benchmark(results)
     sensitivity_plot_path = _plot_sensitivity_envelope(sensitivity_results)
-    readme_path = _write_readme(generation_summary, results)
+    acceptance_curve_path = _plot_completeness_acceptance_curve(sensitivity_results, TARGET_MAPE_PCT)
+    readme_path = _write_readme(generation_summary, results, r2_analysis=r2_analysis, sensitivity_results=sensitivity_results)
 
     print("Mock completeness benchmark complete.")
     print(f"Rows analysed: {len(model_frame)}")
@@ -381,7 +525,13 @@ def main() -> None:
     print(f"Precision plot: {precision_plot_path}")
     print(f"Fold plot: {fold_plot_path}")
     print(f"Sensitivity plot: {sensitivity_plot_path}")
+    print(f"Acceptance curve plot: {acceptance_curve_path}")
+    print(f"Required R2 analysis: {r2_analysis_path}")
     print(f"README: {readme_path}")
+    print(
+        f"To reach {TARGET_MAPE_PCT:.0f}% MAPE, need log-R2 >= {r2_analysis['required_log_r2']:.3f} "
+        f"(required log-sigma {r2_analysis['required_log_residual_sigma']:.3f})."
+    )
     print(results.loc[:, ["label", "rolling_mean_mape_pct", "headline_fold_mape_pct", "random_5_fold_mean_mape_pct"]].to_string(index=False))
     print()
     print(sensitivity_error_table.to_string(index=False))

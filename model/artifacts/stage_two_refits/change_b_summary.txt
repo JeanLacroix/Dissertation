@@ -3,8 +3,8 @@
 Dep. Variable:     log_deal_size_eur_mn   R-squared:                       0.592
 Model:                              OLS   Adj. R-squared:                  0.585
 Method:                   Least Squares   F-statistic:                     81.47
-Date:                  Mon, 13 Apr 2026   Prob (F-statistic):          2.15e-122
-Time:                          21:21:49   Log-Likelihood:                -832.25
+Date:                  Tue, 21 Apr 2026   Prob (F-statistic):          2.15e-122
+Time:                          21:15:30   Log-Likelihood:                -832.25
 No. Observations:                   686   AIC:                             1690.
 Df Residuals:                       673   BIC:                             1749.
 Df Model:                            12                                         

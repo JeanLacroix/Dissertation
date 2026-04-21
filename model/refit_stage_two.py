@@ -144,23 +144,19 @@ def _build_formula(spec: RefitSpec, include_year_built: bool) -> str:
     return "log_deal_size_eur_mn ~ " + " + ".join(rhs)
 
 
-def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], spec: RefitSpec) -> tuple[pd.DataFrame, dict[str, Any]]:
+def _apply_spec_filters(
+    dataset: pd.DataFrame,
+    pipeline_metadata: dict[str, Any],
+    spec: RefitSpec,
+) -> tuple[pd.DataFrame, list[str], list[str], bool, int]:
     frame = dataset.copy()
     if spec.exclude_asset_types:
         frame = frame.loc[~frame["primary_asset_type"].astype(str).isin(spec.exclude_asset_types)].copy()
     if spec.exclude_country_groups:
         frame = frame.loc[~frame["country_group"].astype(str).isin(spec.exclude_country_groups)].copy()
 
-    lower_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_lower_quantile))
-    upper_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_upper_quantile))
-    frame["price_per_sqm_winsorized_eur"] = frame["price_per_sqm_eur"].clip(lower_bound, upper_bound)
-    frame["deal_size_winsorized_eur_mn"] = (
-        frame["price_per_sqm_winsorized_eur"] * frame["TOTAL SIZE (SQ. M.)"] / 1_000_000
-    )
-    frame["actual_deal_size_eur_mn"] = frame["deal_size_winsorized_eur_mn"]
-    frame["actual_price_per_sqm_eur"] = frame["price_per_sqm_winsorized_eur"]
-    frame["log_deal_size_eur_mn"] = np.log(frame["deal_size_winsorized_eur_mn"])
     frame["log_total_size_sqm"] = np.log(frame["TOTAL SIZE (SQ. M.)"])
+    frame = frame.loc[np.isfinite(frame["log_total_size_sqm"])].copy()
 
     include_year_built = bool(pipeline_metadata["year_built"]["year_built_enabled"] and spec.allow_year_built)
     rows_removed_for_missing_year_built = 0
@@ -168,13 +164,39 @@ def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], 
         rows_removed_for_missing_year_built = int(frame["year_built"].isna().sum())
         frame = frame.dropna(subset=["year_built"]).copy()
 
-    frame = frame.loc[np.isfinite(frame["log_deal_size_eur_mn"]) & np.isfinite(frame["log_total_size_sqm"])].copy()
     active_asset_levels = _active_levels(ASSET_TYPE_LEVELS, spec.exclude_asset_types)
     active_country_levels = _active_levels(COUNTRY_GROUP_LEVELS, spec.exclude_country_groups)
-    frame["primary_asset_type"] = pd.Categorical(frame["primary_asset_type"], categories=active_asset_levels)
-    frame["country_group"] = pd.Categorical(frame["country_group"], categories=active_country_levels)
+    frame["primary_asset_type"] = pd.Categorical(frame["primary_asset_type"].astype(str), categories=active_asset_levels)
+    frame["country_group"] = pd.Categorical(frame["country_group"].astype(str), categories=active_country_levels)
     frame = frame.reset_index(drop=True)
+    return frame, active_asset_levels, active_country_levels, include_year_built, rows_removed_for_missing_year_built
 
+
+def _apply_winsor_bounds(frame: pd.DataFrame, lower_bound: float, upper_bound: float) -> pd.DataFrame:
+    out = frame.copy()
+    out["price_per_sqm_winsorized_eur"] = out["price_per_sqm_eur"].clip(lower_bound, upper_bound)
+    out["deal_size_winsorized_eur_mn"] = out["price_per_sqm_winsorized_eur"] * out["TOTAL SIZE (SQ. M.)"] / 1_000_000
+    out["actual_deal_size_eur_mn"] = out["deal_size_winsorized_eur_mn"]
+    out["actual_price_per_sqm_eur"] = out["price_per_sqm_winsorized_eur"]
+    out["log_deal_size_eur_mn"] = np.log(out["deal_size_winsorized_eur_mn"])
+    out = out.loc[np.isfinite(out["log_deal_size_eur_mn"])].copy().reset_index(drop=True)
+    return out
+
+
+def _winsor_bounds_from(frame: pd.DataFrame, spec: RefitSpec) -> tuple[float, float]:
+    lower_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_lower_quantile))
+    upper_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_upper_quantile))
+    return lower_bound, upper_bound
+
+
+def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], spec: RefitSpec) -> tuple[pd.DataFrame, dict[str, Any]]:
+    filtered, asset_levels, country_levels, include_year_built, rows_removed_for_missing_year_built = _apply_spec_filters(
+        dataset, pipeline_metadata, spec
+    )
+    lower_bound, upper_bound = _winsor_bounds_from(filtered, spec)
+    frame = _apply_winsor_bounds(filtered, lower_bound, upper_bound)
+    frame["primary_asset_type"] = pd.Categorical(frame["primary_asset_type"].astype(str), categories=asset_levels)
+    frame["country_group"] = pd.Categorical(frame["country_group"].astype(str), categories=country_levels)
     return frame, {
         "spec": asdict(spec),
         "include_year_built": include_year_built,
@@ -185,8 +207,8 @@ def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], 
             "lower_bound_eur_per_sqm": lower_bound,
             "upper_bound_eur_per_sqm": upper_bound,
         },
-        "asset_type_levels": active_asset_levels,
-        "country_group_levels": active_country_levels,
+        "asset_type_levels": asset_levels,
+        "country_group_levels": country_levels,
     }
 
 
@@ -220,8 +242,22 @@ def _prepare_full_fit_frame(model_frame: pd.DataFrame, spec: RefitSpec) -> pd.Da
     return frame
 
 
-def _run_fold(train_frame: pd.DataFrame, test_frame: pd.DataFrame, spec: RefitSpec, formula: str, fold_name: str) -> dict[str, Any]:
-    prepared_train, prepared_test = _prepare_frames_for_fit(train_frame, test_frame, spec)
+def _run_fold(
+    train_frame: pd.DataFrame,
+    test_frame: pd.DataFrame,
+    spec: RefitSpec,
+    formula: str,
+    fold_name: str,
+    fold_aware_winsor: bool = True,
+) -> dict[str, Any]:
+    if fold_aware_winsor:
+        lower_bound, upper_bound = _winsor_bounds_from(train_frame, spec)
+        train_win = _apply_winsor_bounds(train_frame, lower_bound, upper_bound)
+        test_win = _apply_winsor_bounds(test_frame, lower_bound, upper_bound)
+    else:
+        train_win = train_frame
+        test_win = test_frame
+    prepared_train, prepared_test = _prepare_frames_for_fit(train_win, test_win, spec)
     model = _fit_ols(prepared_train, formula)
     model_predictions = _predict_deal_size_eur_mn(model, prepared_test)
     baseline_predictions = _baseline_predict(prepared_train, prepared_test)
@@ -238,14 +274,19 @@ def _run_fold(train_frame: pd.DataFrame, test_frame: pd.DataFrame, spec: RefitSp
     }
 
 
-def _run_rolling_origin_cv(model_frame: pd.DataFrame, spec: RefitSpec, formula: str) -> dict[str, Any]:
+def _run_rolling_origin_cv(
+    model_frame: pd.DataFrame,
+    spec: RefitSpec,
+    formula: str,
+    fold_aware_winsor: bool = True,
+) -> dict[str, Any]:
     folds: list[dict[str, Any]] = []
     for fold_name, train_years, test_year in ROLLING_FOLD_SPECS:
         train_frame = model_frame.loc[model_frame["transaction_year"].isin(train_years)].copy()
         test_frame = model_frame.loc[model_frame["transaction_year"].eq(test_year)].copy()
         if train_frame.empty or test_frame.empty:
             continue
-        folds.append(_run_fold(train_frame, test_frame, spec, formula, fold_name))
+        folds.append(_run_fold(train_frame, test_frame, spec, formula, fold_name, fold_aware_winsor=fold_aware_winsor))
 
     mapes = [fold["model_metrics"]["mape_pct"] for fold in folds]
     rmses = [fold["model_metrics"]["rmse_eur_mn"] for fold in folds]
@@ -264,7 +305,12 @@ def _run_rolling_origin_cv(model_frame: pd.DataFrame, spec: RefitSpec, formula: 
     }
 
 
-def _run_random_5_fold_cv(model_frame: pd.DataFrame, spec: RefitSpec, formula: str) -> dict[str, Any]:
+def _run_random_5_fold_cv(
+    model_frame: pd.DataFrame,
+    spec: RefitSpec,
+    formula: str,
+    fold_aware_winsor: bool = True,
+) -> dict[str, Any]:
     rng = np.random.default_rng(RANDOM_SEED)
     order = np.arange(len(model_frame))
     rng.shuffle(order)
@@ -275,7 +321,9 @@ def _run_random_5_fold_cv(model_frame: pd.DataFrame, spec: RefitSpec, formula: s
         train_idx = np.setdiff1d(order, test_idx, assume_unique=False)
         train_frame = model_frame.iloc[train_idx].copy()
         test_frame = model_frame.iloc[test_idx].copy()
-        fold_results.append(_run_fold(train_frame, test_frame, spec, formula, f"random_fold_{fold_index}"))
+        fold_results.append(
+            _run_fold(train_frame, test_frame, spec, formula, f"random_fold_{fold_index}", fold_aware_winsor=fold_aware_winsor)
+        )
 
     mapes = [fold["model_metrics"]["mape_pct"] for fold in fold_results]
     rmses = [fold["model_metrics"]["rmse_eur_mn"] for fold in fold_results]
@@ -356,11 +404,21 @@ def _implausibility_notes(
     return notes
 
 
-def evaluate_spec(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], spec: RefitSpec) -> RefitResult:
+def evaluate_spec(
+    dataset: pd.DataFrame,
+    pipeline_metadata: dict[str, Any],
+    spec: RefitSpec,
+    fold_aware_winsor: bool = True,
+) -> RefitResult:
     model_frame, prep_metadata = _apply_spec_frame(dataset, pipeline_metadata, spec)
     formula = _build_formula(spec, include_year_built=prep_metadata["include_year_built"])
-    rolling_origin = _run_rolling_origin_cv(model_frame, spec, formula)
-    random_5_fold = _run_random_5_fold_cv(model_frame, spec, formula)
+    if fold_aware_winsor:
+        filtered_frame, _, _, _, _ = _apply_spec_filters(dataset, pipeline_metadata, spec)
+        cv_frame = filtered_frame
+    else:
+        cv_frame = model_frame
+    rolling_origin = _run_rolling_origin_cv(cv_frame, spec, formula, fold_aware_winsor=fold_aware_winsor)
+    random_5_fold = _run_random_5_fold_cv(cv_frame, spec, formula, fold_aware_winsor=fold_aware_winsor)
     final_fit_frame = _prepare_full_fit_frame(model_frame, spec)
     final_model = _fit_ols(final_fit_frame, formula)
     coefficient_table = _coefficient_table(final_model)
@@ -561,6 +619,8 @@ def run_change_series() -> list[dict[str, Any]]:
         previous_result = current_result
 
         if spec.name == "change_d":
+            # Promotion gate: headline fold has only 17 test rows so this threshold is noisy.
+            # See model/artifacts/refit_audit/ for fold standard errors.
             headline_mape = float(current_result.rolling_origin["headline_fold"]["model_metrics"]["mape_pct"])
             rolling_mean_mape = float(current_result.rolling_origin["mean_mape_pct"])
             if headline_mape <= 55.0 and rolling_mean_mape <= 70.0:
