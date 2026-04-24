@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 
+from .chart_palette import ACCENT, DARK, LIGHT, PRIMARY, SECONDARY, TERTIARY
 from .pipeline import build_training_frame
 from .refit_stage_two import CHANGE_D_SPEC, evaluate_spec
 from .rf_test import _prepare_rf_matrices
@@ -105,11 +106,11 @@ def _plot_scenarios(results: pd.DataFrame, output_path: Path) -> None:
     width = 0.2
     fig, ax = plt.subplots(figsize=(11, 6))
     series = [
-        ("ols_rolling_mean_mape_pct", "OLS rolling mean", "#1f77b4"),
-        ("ols_headline_mape_pct", "OLS 2026 headline", "#ff7f0e"),
-        ("ols_random5_mean_mape_pct", "OLS random 5-fold mean", "#2ca02c"),
-        ("rf_rolling_mean_mape_pct", "RF rolling mean", "#d62728"),
-        ("rf_headline_mape_pct", "RF 2026 headline", "#9467bd"),
+        ("ols_rolling_mean_mape_pct", "OLS rolling mean", DARK),
+        ("ols_headline_mape_pct", "OLS 2026 headline", PRIMARY),
+        ("ols_random5_mean_mape_pct", "OLS random 5-fold mean", SECONDARY),
+        ("rf_rolling_mean_mape_pct", "RF rolling mean", TERTIARY),
+        ("rf_headline_mape_pct", "RF 2026 headline", ACCENT),
     ]
     for idx, (column, label, color) in enumerate(series):
         positions = x + (idx - len(series) / 2) * width + width / 2

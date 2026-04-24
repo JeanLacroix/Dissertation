@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from .chart_palette import ACCENT, DARK, LIGHT, MUTED, NEUTRAL, PRIMARY, SECONDARY, TERTIARY
 from .train import (
     ARTIFACTS_DIR,
     CHANGE_D_FORMULA,
@@ -211,11 +212,11 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
     width = 0.34
 
     fig, ax = plt.subplots(figsize=(11.5, 6))
-    bars_rolling = ax.bar(x - width / 2, plot_frame["rolling_mean_mape_pct"], width=width, color="#1f77b4", label="Rolling-origin mean MAPE")
-    bars_headline = ax.bar(x + width / 2, plot_frame["headline_fold_mape_pct"], width=width, color="#ff7f0e", label="2026 headline MAPE")
+    bars_rolling = ax.bar(x - width / 2, plot_frame["rolling_mean_mape_pct"], width=width, color=PRIMARY, label="Rolling-origin mean MAPE")
+    bars_headline = ax.bar(x + width / 2, plot_frame["headline_fold_mape_pct"], width=width, color=ACCENT, label="2026 headline MAPE")
     ax.axhline(
         float(plot_frame["headline_fold_naive_baseline_mape_pct"].iloc[0]),
-        color="#7f7f7f",
+        color=MUTED,
         linestyle="--",
         linewidth=1.6,
         label="2026 naive baseline MAPE",
@@ -259,7 +260,7 @@ def _plot_fold_benchmark(results: pd.DataFrame) -> Path:
     x = np.arange(4)
     n_specs = len(plot_frame)
     width = 0.82 / max(n_specs, 1)
-    colors = ["#c6dbef", "#9ecae1", "#3182bd", "#08519c"][:n_specs]
+    colors = [LIGHT, TERTIARY, SECONDARY, DARK][:n_specs]
 
     fig, ax = plt.subplots(figsize=(11.5, 6))
     for idx, (_, row) in enumerate(plot_frame.iterrows()):
@@ -288,10 +289,10 @@ def _plot_sensitivity_envelope(results: pd.DataFrame) -> Path:
     plot_frame = results.loc[results["target_mode"].eq("mock")].copy()
     x = plot_frame["signal_share_of_current_residual_variance"].astype(float).sort_values().unique()
     spec_order = [
-        ("mock_observed_only", "Observed only", "#c6dbef"),
-        ("mock_partial_completeness", "+2 synthetic", "#9ecae1"),
-        ("mock_extensive_dataset", "+4 synthetic", "#3182bd"),
-        ("mock_ultra_completeness", "+8 synthetic", "#08519c"),
+        ("mock_observed_only", "Observed only", LIGHT),
+        ("mock_partial_completeness", "+2 synthetic", TERTIARY),
+        ("mock_extensive_dataset", "+4 synthetic", SECONDARY),
+        ("mock_ultra_completeness", "+8 synthetic", DARK),
     ]
 
     fig, ax = plt.subplots(figsize=(10.5, 6))
@@ -362,10 +363,10 @@ def _required_log_r2_for_mape_target(
 
 def _plot_completeness_acceptance_curve(sensitivity_results: pd.DataFrame, target_mape_pct: float) -> Path:
     spec_order = [
-        ("mock_observed_only", "Observed only", "#c6dbef"),
-        ("mock_partial_completeness", "+2 synthetic", "#9ecae1"),
-        ("mock_extensive_dataset", "+4 synthetic", "#3182bd"),
-        ("mock_ultra_completeness", "+8 synthetic", "#08519c"),
+        ("mock_observed_only", "Observed only", LIGHT),
+        ("mock_partial_completeness", "+2 synthetic", TERTIARY),
+        ("mock_extensive_dataset", "+4 synthetic", SECONDARY),
+        ("mock_ultra_completeness", "+8 synthetic", DARK),
     ]
     fig, ax = plt.subplots(figsize=(11, 6.5))
     for spec_name, label, color in spec_order:
@@ -392,7 +393,7 @@ def _plot_completeness_acceptance_curve(sensitivity_results: pd.DataFrame, targe
                 color=color,
             )
 
-    ax.axhline(target_mape_pct, color="#e31a1c", linestyle="--", linewidth=1.6, label=f"{target_mape_pct:.0f}% target")
+    ax.axhline(target_mape_pct, color=ACCENT, linestyle="--", linewidth=1.8, label=f"{target_mape_pct:.0f}% target")
     ax.set_xlabel("Share of current Change D residual variance explained by synthetic features")
     ax.set_ylabel("Random 5-fold mean MAPE (%)")
     ax.set_title(f"Completeness acceptance curve: how close to {target_mape_pct:.0f}% MAPE under richer data")
