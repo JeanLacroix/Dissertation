@@ -18,7 +18,6 @@ if str(PROJECT_ROOT_FOR_IMPORTS) not in sys.path:
 
 from src.backend.comparables_service import (
     ComparableQuery,
-    classify_comparable_scenario,
     load_prepared_comparables,
     retrieve_comparables,
 )
@@ -2105,20 +2104,14 @@ def _render_comparables_screen(context) -> None:
         results_frame = focused_result["results"].copy()
         scope_note = "Focused retrieval inside the primary mandate scope using only currently available transactions."
 
-    scenario = classify_comparable_scenario(
-        has_size=query.size_sqm is not None,
-        has_year=query.transaction_year is not None,
-        cap_rate_pct=query.cap_rate_pct,
-    )
-    lower, upper = scenario["expected_mape_range_pct"]
     display_frame = _comparables_display_frame(results_frame)
 
     st.markdown(
-        (
-            "<div class='adi-grid adi-grid--two'>"
-            f"{_card_html('Query', f'{query.asset_type} - {query.country} - {int(query.size_sqm):,} sqm - {query.transaction_year}', note=scope_note, accent=True)}"
-            f"{_card_html('Scenario', scenario['label'], note=f'Expected MAPE range {lower:.0f}% - {upper:.0f}%')}"
-            "</div>"
+        _card_html(
+            "Query",
+            f"{query.asset_type} - {query.country} - {int(query.size_sqm):,} sqm - {query.transaction_year}",
+            note=scope_note,
+            accent=True,
         ),
         unsafe_allow_html=True,
     )
