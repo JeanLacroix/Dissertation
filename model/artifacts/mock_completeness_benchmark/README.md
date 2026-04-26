@@ -12,3 +12,16 @@ Assuming log-price residuals are approximately normal with variance sigma-square
 
 At signal_share = 95% with 8 synthetic features, random 5-fold mean MAPE reaches 14.8%. This is the best case produced by the mock and is still well above the 10% target, which confirms that the observed hedonic feature set alone cannot close the gap.
 
+## How many rows would be needed to reach 20% rolling-origin MAPE?
+
+This layer holds the richest mock-data scenario fixed at +8 synthetic features, then re-runs the rolling-origin benchmark on 30 repeated year-stratified subsamples at each sample size under three completeness assumptions: 100% signal (upper bound), 95% signal, 85% signal. Year stratification preserves the 2021-2026 fold structure so the low-N curves stay comparable to the headline full-sample benchmark.
+
+- Under the **100% signal (upper bound)** scenario, the full 686-row sample records mean rolling-origin MAPE of **9.1%**. The mean curve crosses 20% at roughly **N* = 123 rows**, bracketed by 120 and 150 rows, which corresponds to about **3.8 years** at 32 rows per year.
+- Under the **95% signal** scenario, the full 686-row sample records mean rolling-origin MAPE of **17.1%**. The mean curve crosses 20% at roughly **N* = 299 rows**, bracketed by 200 and 300 rows, which corresponds to about **9.3 years** at 32 rows per year.
+- Under the **85% signal** scenario, the full 686-row sample records mean rolling-origin MAPE of **26.4%**. Even the largest analysed sample on this grid does not push the mean curve below 20%.
+
+Caveats:
+- The curve uses the current Preqin sample structure as a stand-in for what internal Alantra capture might look like.
+- The synthetic features are imposed by construction; the 100% signal-share case is an explicit upper bound, while 95% and 85% remain stylised scenario tests rather than observed production states.
+- At low N the country-group fixed effects and yearly folds become thin; widening uncertainty is part of the result, not a bug.
+

@@ -23,6 +23,12 @@ MOCK_DIR = ARTIFACTS_DIR / "mock_completeness_benchmark"
 BASE_SIGNAL_SHARE = 0.50
 SIGNAL_SHARE_GRID = [0.30, 0.50, 0.70, 0.85, 0.95]
 TARGET_MAPE_PCT = 10.0
+SAMPLE_SIZE_TARGET_MAPE_PCT = 20.0
+SAMPLE_SIZE_REPEATS = 30
+SAMPLE_SIZE_GRID_CANDIDATES = [50, 80, 100, 120, 150, 200, 300, 400, 800, 1600, 3200]
+SAMPLE_SIZE_SIGNAL_SHARES = [1.0, 0.95, 0.85]
+CAPTURE_RECORDS_PER_YEAR = 32
+ULTRA_COMPLETENESS_SPEC_NAME = "mock_ultra_completeness"
 
 SYNTHETIC_FEATURES = [
     "micro_location_score",
@@ -204,6 +210,254 @@ def _build_sensitivity_error_table(results: pd.DataFrame) -> pd.DataFrame:
     return pivot.sort_values("signal_share").reset_index(drop=True)
 
 
+def _build_sample_size_grid(full_sample_size: int) -> list[int]:
+    grid = {min(candidate, full_sample_size) for candidate in SAMPLE_SIZE_GRID_CANDIDATES}
+    grid.add(full_sample_size)
+    return sorted(int(value) for value in grid if int(value) > 0)
+
+
+def _format_sample_size_signal_share(signal_share: float) -> str:
+    label = f"{signal_share:.0%} signal"
+    if np.isclose(signal_share, max(SAMPLE_SIZE_SIGNAL_SHARES)):
+        return f"{label} (upper bound)"
+    return label
+
+
+def _allocate_year_counts(year_counts: pd.Series, sample_size: int) -> pd.Series:
+    counts = year_counts.astype(int).sort_index()
+    if sample_size > int(counts.sum()):
+        raise ValueError("Requested sample size exceeds the available frame size.")
+    if sample_size < len(counts):
+        raise ValueError("Sample size must be at least the number of transaction years.")
+
+    allocation = pd.Series(1, index=counts.index, dtype=int)
+    remaining = sample_size - len(counts)
+    if remaining <= 0:
+        return allocation
+
+    spare_capacity = counts - 1
+    if int(spare_capacity.sum()) <= 0:
+        return allocation
+
+    weighted_target = remaining * spare_capacity / float(spare_capacity.sum())
+    extra = np.floor(weighted_target).astype(int)
+    extra = np.minimum(extra, spare_capacity)
+    allocation = allocation + extra
+
+    leftover = remaining - int(extra.sum())
+    if leftover > 0:
+        fractional_order = (weighted_target - np.floor(weighted_target)).sort_values(ascending=False).index.tolist()
+        for year in fractional_order:
+            if leftover == 0:
+                break
+            if int(allocation.loc[year]) < int(counts.loc[year]):
+                allocation.loc[year] += 1
+                leftover -= 1
+
+    if leftover > 0:
+        capacity_order = (counts - allocation).sort_values(ascending=False).index.tolist()
+        for year in capacity_order:
+            if leftover == 0:
+                break
+            available = int(counts.loc[year] - allocation.loc[year])
+            if available <= 0:
+                continue
+            take = min(available, leftover)
+            allocation.loc[year] += take
+            leftover -= take
+
+    if leftover != 0:
+        raise ValueError("Could not allocate the requested stratified sample size.")
+    return allocation.astype(int)
+
+
+def _year_stratified_subsample(model_frame: pd.DataFrame, sample_size: int, random_state: int) -> pd.DataFrame:
+    if sample_size >= len(model_frame):
+        return model_frame.copy().reset_index(drop=True)
+
+    year_counts = model_frame["transaction_year"].value_counts().sort_index()
+    allocation = _allocate_year_counts(year_counts, sample_size)
+    sampled_parts: list[pd.DataFrame] = []
+
+    for offset, year in enumerate(allocation.index.tolist()):
+        take = int(allocation.loc[year])
+        year_slice = model_frame.loc[model_frame["transaction_year"].eq(year)].copy()
+        sampled_parts.append(year_slice.sample(n=take, random_state=random_state + offset, replace=False))
+
+    sampled = pd.concat(sampled_parts, axis=0).sort_index()
+    return sampled.reset_index(drop=True)
+
+
+def _evaluate_sample_size_sensitivity(model_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    ultra_spec = next(spec for spec in MOCK_SPECS if spec["spec_name"] == ULTRA_COMPLETENESS_SPEC_NAME)
+    sample_sizes = _build_sample_size_grid(len(model_frame))
+    years = sorted(model_frame["transaction_year"].dropna().astype(int).unique().tolist())
+    run_rows: list[dict[str, Any]] = []
+    expected_fold_count = 4
+
+    for signal_share in SAMPLE_SIZE_SIGNAL_SHARES:
+        for sample_size in sample_sizes:
+            for seed in range(SAMPLE_SIZE_REPEATS):
+                subsample = _year_stratified_subsample(model_frame, sample_size, random_state=RANDOM_SEED + seed)
+                year_mix = subsample["transaction_year"].value_counts().sort_index()
+                mock_subsample, _ = _build_mock_frame(subsample, signal_share=signal_share)
+                evaluation_frame = _frame_for_target(mock_subsample, ultra_spec["target_mode"])
+
+                row: dict[str, Any] = {
+                    "sample_size_n": int(sample_size),
+                    "seed": int(seed),
+                    "signal_share_of_current_residual_variance": float(signal_share),
+                    "spec_name": ultra_spec["spec_name"],
+                    "label": ultra_spec["label"],
+                    "status": "ok",
+                    "valid_fold_count": 0,
+                    "full_fold_coverage": False,
+                    "rolling_mean_mape_pct": np.nan,
+                    "rolling_std_mape_pct": np.nan,
+                    "headline_fold_mape_pct": np.nan,
+                    "headline_fold_naive_baseline_mape_pct": np.nan,
+                    "headline_fold_test_rows": np.nan,
+                    "error_type": "",
+                    "error_message": "",
+                }
+                for year in years:
+                    row[f"rows_{year}"] = int(year_mix.get(year, 0))
+
+                try:
+                    rolling = run_rolling_origin_cv(evaluation_frame, ultra_spec["formula"])
+                    headline_fold = rolling["headline_fold"]
+                    row["valid_fold_count"] = int(len(rolling["folds"]))
+                    row["full_fold_coverage"] = bool(len(rolling["folds"]) == expected_fold_count)
+                    row["rolling_mean_mape_pct"] = float(rolling["mean_mape_pct"])
+                    row["rolling_std_mape_pct"] = float(rolling["std_mape_pct"])
+                    if headline_fold is not None:
+                        row["headline_fold_mape_pct"] = float(headline_fold["model_metrics"]["mape_pct"])
+                        row["headline_fold_naive_baseline_mape_pct"] = float(headline_fold["baseline_metrics"]["mape_pct"])
+                        row["headline_fold_test_rows"] = int(headline_fold["test_rows"])
+                except Exception as exc:
+                    row["status"] = "error"
+                    row["error_type"] = type(exc).__name__
+                    row["error_message"] = str(exc)
+
+                run_rows.append(row)
+
+    run_results = pd.DataFrame(run_rows)
+    summary_rows: list[dict[str, Any]] = []
+    for signal_share in SAMPLE_SIZE_SIGNAL_SHARES:
+        for sample_size in sample_sizes:
+            current = run_results.loc[
+                run_results["signal_share_of_current_residual_variance"].eq(signal_share)
+                & run_results["sample_size_n"].eq(sample_size)
+            ].copy()
+            valid = current.loc[current["status"].eq("ok") & current["full_fold_coverage"]].copy()
+
+            summary_row: dict[str, Any] = {
+                "sample_size_n": int(sample_size),
+                "signal_share_of_current_residual_variance": float(signal_share),
+                "n_runs": int(len(current)),
+                "n_successful_runs": int(current["status"].eq("ok").sum()),
+                "n_full_fold_coverage_runs": int(len(valid)),
+                "rolling_mean_mape_pct_mean": np.nan,
+                "rolling_mean_mape_pct_p10": np.nan,
+                "rolling_mean_mape_pct_p90": np.nan,
+                "rolling_std_mape_pct_mean": np.nan,
+                "headline_fold_mape_pct_mean": np.nan,
+                "headline_fold_mape_pct_p10": np.nan,
+                "headline_fold_mape_pct_p90": np.nan,
+                "headline_fold_naive_baseline_mape_pct_mean": np.nan,
+                "observed_capture_years": float(sample_size) / CAPTURE_RECORDS_PER_YEAR,
+            }
+            for year in years:
+                summary_row[f"mean_rows_{year}"] = float(valid[f"rows_{year}"].mean()) if not valid.empty else np.nan
+
+            if not valid.empty:
+                rolling_values = valid["rolling_mean_mape_pct"].to_numpy(dtype=float)
+                headline_values = valid["headline_fold_mape_pct"].to_numpy(dtype=float)
+                summary_row["rolling_mean_mape_pct_mean"] = float(np.mean(rolling_values))
+                summary_row["rolling_mean_mape_pct_p10"] = float(np.percentile(rolling_values, 10))
+                summary_row["rolling_mean_mape_pct_p90"] = float(np.percentile(rolling_values, 90))
+                summary_row["rolling_std_mape_pct_mean"] = float(valid["rolling_std_mape_pct"].mean())
+                summary_row["headline_fold_mape_pct_mean"] = float(np.mean(headline_values))
+                summary_row["headline_fold_mape_pct_p10"] = float(np.percentile(headline_values, 10))
+                summary_row["headline_fold_mape_pct_p90"] = float(np.percentile(headline_values, 90))
+                summary_row["headline_fold_naive_baseline_mape_pct_mean"] = float(
+                    valid["headline_fold_naive_baseline_mape_pct"].mean()
+                )
+
+            summary_rows.append(summary_row)
+
+    summary = pd.DataFrame(summary_rows).sort_values(
+        ["signal_share_of_current_residual_variance", "sample_size_n"],
+        ascending=[False, True],
+    ).reset_index(drop=True)
+    threshold_summary = _build_sample_size_threshold_table(summary, SAMPLE_SIZE_TARGET_MAPE_PCT)
+    return summary, run_results, threshold_summary
+
+
+def _build_sample_size_threshold_table(sample_size_results: pd.DataFrame, target_mape_pct: float) -> pd.DataFrame:
+    threshold_rows: list[dict[str, Any]] = []
+    for signal_share in SAMPLE_SIZE_SIGNAL_SHARES:
+        curve = sample_size_results.loc[
+            sample_size_results["signal_share_of_current_residual_variance"].eq(signal_share)
+        ].copy()
+        threshold_row = _estimate_sample_size_threshold(curve, target_mape_pct)
+        threshold_row["signal_share_of_current_residual_variance"] = float(signal_share)
+        threshold_rows.append(threshold_row)
+    return pd.DataFrame(threshold_rows).sort_values(
+        "signal_share_of_current_residual_variance",
+        ascending=False,
+    ).reset_index(drop=True)
+
+
+def _estimate_sample_size_threshold(sample_size_results: pd.DataFrame, target_mape_pct: float) -> dict[str, Any]:
+    curve = (
+        sample_size_results.loc[sample_size_results["rolling_mean_mape_pct_mean"].notna()]
+        .sort_values("sample_size_n")
+        .reset_index(drop=True)
+    )
+    summary: dict[str, Any] = {
+        "target_mape_pct": float(target_mape_pct),
+        "threshold_reached": False,
+        "estimated_minimum_rows": np.nan,
+        "lower_bracket_n": np.nan,
+        "upper_bracket_n": np.nan,
+        "estimated_observed_capture_years": np.nan,
+    }
+    if curve.empty:
+        return summary
+
+    below_target = curve.loc[curve["rolling_mean_mape_pct_mean"].le(target_mape_pct)]
+    if below_target.empty:
+        return summary
+
+    crossing_idx = int(below_target.index[0])
+    upper = below_target.iloc[0]
+    if crossing_idx == 0:
+        estimated_rows = float(upper["sample_size_n"])
+        lower_n = float(upper["sample_size_n"])
+        upper_n = float(upper["sample_size_n"])
+    else:
+        lower = curve.iloc[crossing_idx - 1]
+        x0 = float(np.log(lower["sample_size_n"]))
+        x1 = float(np.log(upper["sample_size_n"]))
+        y0 = float(lower["rolling_mean_mape_pct_mean"])
+        y1 = float(upper["rolling_mean_mape_pct_mean"])
+        if np.isclose(y1, y0):
+            estimated_rows = float(upper["sample_size_n"])
+        else:
+            weight = float((target_mape_pct - y0) / (y1 - y0))
+            estimated_rows = float(np.exp(x0 + weight * (x1 - x0)))
+        lower_n = float(lower["sample_size_n"])
+        upper_n = float(upper["sample_size_n"])
+
+    summary["threshold_reached"] = True
+    summary["estimated_minimum_rows"] = estimated_rows
+    summary["lower_bracket_n"] = lower_n
+    summary["upper_bracket_n"] = upper_n
+    summary["estimated_observed_capture_years"] = estimated_rows / CAPTURE_RECORDS_PER_YEAR
+    return summary
+
+
 def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
     plot_frame = results.loc[
         results["spec_name"].ne("real_change_d") & results["signal_share_of_current_residual_variance"].eq(BASE_SIGNAL_SHARE)
@@ -242,6 +496,72 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
     fig.tight_layout()
 
     output_path = MOCK_DIR / "mock_precision_benchmark.png"
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return output_path
+
+
+def _plot_sample_size_sensitivity(sample_size_results: pd.DataFrame, threshold_summary: pd.DataFrame, target_mape_pct: float) -> Path:
+    plot_frame = sample_size_results.loc[sample_size_results["rolling_mean_mape_pct_mean"].notna()].copy()
+    fig, ax = plt.subplots(figsize=(11, 6.5))
+    color_map = {
+        1.0: DARK,
+        0.95: SECONDARY,
+        0.85: TERTIARY,
+    }
+    for idx, signal_share in enumerate(SAMPLE_SIZE_SIGNAL_SHARES):
+        share_frame = (
+            plot_frame.loc[plot_frame["signal_share_of_current_residual_variance"].eq(signal_share)]
+            .sort_values("sample_size_n")
+            .reset_index(drop=True)
+        )
+        if share_frame.empty:
+            continue
+        color = color_map.get(float(signal_share), PRIMARY)
+        x = share_frame["sample_size_n"].to_numpy(dtype=float)
+        y = share_frame["rolling_mean_mape_pct_mean"].to_numpy(dtype=float)
+        y_low = share_frame["rolling_mean_mape_pct_p10"].to_numpy(dtype=float)
+        y_high = share_frame["rolling_mean_mape_pct_p90"].to_numpy(dtype=float)
+        label = _format_sample_size_signal_share(float(signal_share))
+
+        ax.fill_between(x, y_low, y_high, color=color, alpha=0.10)
+        ax.plot(x, y, marker="o", linewidth=2.2, color=color, label=f"{label} mean")
+        for _, row in share_frame.iterrows():
+            ax.text(
+                float(row["sample_size_n"]) * 1.02,
+                float(row["rolling_mean_mape_pct_mean"]) + 0.8 + idx * 0.35,
+                f"{row['rolling_mean_mape_pct_mean']:.1f}",
+                fontsize=7,
+                color=color,
+            )
+
+    ax.axhline(target_mape_pct, color=ACCENT, linestyle="--", linewidth=1.8, label=f"{target_mape_pct:.0f}% threshold")
+    for idx, threshold_row in threshold_summary.iterrows():
+        if not bool(threshold_row.get("threshold_reached")):
+            continue
+        signal_share = float(threshold_row["signal_share_of_current_residual_variance"])
+        threshold_n = float(threshold_row["estimated_minimum_rows"])
+        color = color_map.get(signal_share, PRIMARY)
+        label = _format_sample_size_signal_share(signal_share)
+        ax.axvline(threshold_n, color=color, linestyle=":", linewidth=1.6, label=f"{label} N*")
+        ax.text(
+            threshold_n * 1.02,
+            target_mape_pct + 0.9 + idx * 2.1,
+            f"{label}\nN* approx. {threshold_n:.0f}\n~{threshold_row['estimated_observed_capture_years']:.1f} years",
+            fontsize=7,
+            color=color,
+            va="bottom",
+        )
+
+    ax.set_xscale("log")
+    ax.set_xlabel("Subsample size N (log scale)")
+    ax.set_ylabel("Rolling-origin mean MAPE (%)")
+    ax.set_title("Sample-size sensitivity across upper-bound and lower signal-share scenarios")
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(frameon=False, fontsize=9)
+    fig.tight_layout()
+
+    output_path = MOCK_DIR / "sample_size_sensitivity_curve.png"
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return output_path
@@ -407,7 +727,14 @@ def _plot_completeness_acceptance_curve(sensitivity_results: pd.DataFrame, targe
     return output_path
 
 
-def _write_readme(generation_summary: dict[str, Any], results: pd.DataFrame, r2_analysis: dict[str, float] | None = None, sensitivity_results: pd.DataFrame | None = None) -> Path:
+def _write_readme(
+    generation_summary: dict[str, Any],
+    results: pd.DataFrame,
+    r2_analysis: dict[str, float] | None = None,
+    sensitivity_results: pd.DataFrame | None = None,
+    sample_size_results: pd.DataFrame | None = None,
+    sample_size_threshold: pd.DataFrame | None = None,
+) -> Path:
     observed_row = results.loc[results["spec_name"].eq("mock_observed_only")].iloc[0]
     extensive_row = results.loc[results["spec_name"].eq("mock_extensive_dataset")].iloc[0]
     ultra_row = results.loc[results["spec_name"].eq("mock_ultra_completeness")].iloc[0]
@@ -441,6 +768,52 @@ def _write_readme(generation_summary: dict[str, Any], results: pd.DataFrame, r2_
                 f"which confirms that the observed hedonic feature set alone cannot close the gap.\n\n"
             )
 
+    sample_size_block = ""
+    if sample_size_results is not None:
+        curve = sample_size_results.sort_values(
+            ["signal_share_of_current_residual_variance", "sample_size_n"],
+            ascending=[False, True],
+        ).reset_index(drop=True)
+        signal_labels = ", ".join(_format_sample_size_signal_share(float(share)) for share in SAMPLE_SIZE_SIGNAL_SHARES)
+        sample_size_block = (
+            f"## How many rows would be needed to reach {SAMPLE_SIZE_TARGET_MAPE_PCT:.0f}% rolling-origin MAPE?\n\n"
+            f"This layer holds the richest mock-data scenario fixed at +8 synthetic features, then re-runs the "
+            f"rolling-origin benchmark on {SAMPLE_SIZE_REPEATS} repeated year-stratified subsamples at each sample "
+            f"size under three completeness assumptions: {signal_labels}. Year stratification preserves the 2021-2026 "
+            f"fold structure so the low-N curves stay comparable to the headline full-sample benchmark.\n\n"
+        )
+        if sample_size_threshold is not None and not sample_size_threshold.empty:
+            for _, threshold_row in sample_size_threshold.iterrows():
+                signal_share = float(threshold_row["signal_share_of_current_residual_variance"])
+                share_label = _format_sample_size_signal_share(signal_share)
+                share_curve = curve.loc[curve["signal_share_of_current_residual_variance"].eq(signal_share)].copy()
+                full_row = share_curve.sort_values("sample_size_n").iloc[-1]
+                sample_size_block += (
+                    f"- Under the **{share_label}** scenario, the full {int(full_row['sample_size_n'])}-row sample "
+                    f"records mean rolling-origin MAPE of **{full_row['rolling_mean_mape_pct_mean']:.1f}%**. "
+                )
+                if bool(threshold_row["threshold_reached"]):
+                    sample_size_block += (
+                        f"The mean curve crosses {SAMPLE_SIZE_TARGET_MAPE_PCT:.0f}% at roughly "
+                        f"**N* = {threshold_row['estimated_minimum_rows']:.0f} rows**, bracketed by "
+                        f"{threshold_row['lower_bracket_n']:.0f} and {threshold_row['upper_bracket_n']:.0f} rows, "
+                        f"which corresponds to about **{threshold_row['estimated_observed_capture_years']:.1f} years** "
+                        f"at {CAPTURE_RECORDS_PER_YEAR} rows per year.\n"
+                    )
+                else:
+                    sample_size_block += (
+                        f"Even the largest analysed sample on this grid does not push the mean curve below "
+                        f"{SAMPLE_SIZE_TARGET_MAPE_PCT:.0f}%.\n"
+                    )
+            sample_size_block += "\n"
+
+        sample_size_block += (
+            "Caveats:\n"
+            "- The curve uses the current Preqin sample structure as a stand-in for what internal Alantra capture might look like.\n"
+            "- The synthetic features are imposed by construction; the 100% signal-share case is an explicit upper bound, while 95% and 85% remain stylised scenario tests rather than observed production states.\n"
+            "- At low N the country-group fixed effects and yearly folds become thin; widening uncertainty is part of the result, not a bug.\n\n"
+        )
+
     readme_text = f"""# Mock completeness benchmark
 
 This analysis creates a synthetic richer-data benchmark to estimate what predictive precision could be achievable if materially more deal-level information were observed. The starting point is the existing Change D sample and fitted structure. A mock target is generated as the sum of: (i) the fitted Change D signal already explained by observed covariates, (ii) up to eight synthetic standardised features (micro-location, building quality, lease quality, tenant covenant, capex need, refurbishment potential, credit spread, rental growth), and (iii) irreducible noise.
@@ -448,7 +821,7 @@ This analysis creates a synthetic richer-data benchmark to estimate what predict
 The synthetic features are not copied from external data. They are generated with group structure by country, asset type, and year plus idiosyncratic noise, then scaled so that they explain {generation_summary['signal_share_of_current_residual_variance']:.0%} of the current Change D residual variance in the base case. The remaining {generation_summary['irreducible_noise_share_of_current_residual_variance']:.0%} is left as noise.
 
 On the real target, Change D records a rolling-origin mean MAPE of {real_row['rolling_mean_mape_pct']:.1f}%. On the base-case mock target, the observed-feature model records {observed_row['rolling_mean_mape_pct']:.1f}%, the +4 synthetic-feature model records {extensive_row['rolling_mean_mape_pct']:.1f}%, and the +8 synthetic-feature model records {ultra_row['rolling_mean_mape_pct']:.1f}%. The sensitivity sweep covers 30%, 50%, 70%, 85%, and 95% explainable residual-variance shares. This should be interpreted as a structured sensitivity benchmark rather than as a claim about true achievable production accuracy.
-{r2_block}{sensitivity_block}"""
+{r2_block}{sensitivity_block}{sample_size_block}"""
     output_path = MOCK_DIR / "README.md"
     output_path.write_text(readme_text, encoding="utf-8")
     return output_path
@@ -489,6 +862,7 @@ def main() -> None:
             sensitivity_rows.append(row)
     sensitivity_results = pd.DataFrame(sensitivity_rows)
     sensitivity_error_table = _build_sensitivity_error_table(sensitivity_results)
+    sample_size_results, sample_size_run_results, sample_size_threshold = _evaluate_sample_size_sensitivity(model_frame)
 
     results_path = MOCK_DIR / "benchmark_results.csv"
     results.to_csv(results_path, index=False)
@@ -498,6 +872,12 @@ def main() -> None:
 
     sensitivity_error_table_path = MOCK_DIR / "sensitivity_error_table.csv"
     sensitivity_error_table.to_csv(sensitivity_error_table_path, index=False)
+
+    sample_size_results_path = MOCK_DIR / "sample_size_sensitivity.csv"
+    sample_size_results.to_csv(sample_size_results_path, index=False)
+
+    sample_size_run_results_path = MOCK_DIR / "sample_size_run_results.csv"
+    sample_size_run_results.to_csv(sample_size_run_results_path, index=False)
 
     feature_summary_path = MOCK_DIR / "synthetic_feature_summary.csv"
     feature_summary.to_csv(feature_summary_path, index=False)
@@ -510,32 +890,72 @@ def main() -> None:
     r2_analysis_path = MOCK_DIR / "required_log_r2_for_target_mape.json"
     r2_analysis_path.write_text(json.dumps(r2_analysis, indent=2), encoding="utf-8")
 
+    sample_size_threshold_path = MOCK_DIR / "sample_size_threshold_summary.json"
+    sample_size_threshold_path.write_text(
+        json.dumps(sample_size_threshold.to_dict(orient="records"), indent=2),
+        encoding="utf-8",
+    )
+
     precision_plot_path = _plot_precision_benchmark(results)
     fold_plot_path = _plot_fold_benchmark(results)
     sensitivity_plot_path = _plot_sensitivity_envelope(sensitivity_results)
     acceptance_curve_path = _plot_completeness_acceptance_curve(sensitivity_results, TARGET_MAPE_PCT)
-    readme_path = _write_readme(generation_summary, results, r2_analysis=r2_analysis, sensitivity_results=sensitivity_results)
+    sample_size_plot_path = _plot_sample_size_sensitivity(
+        sample_size_results,
+        sample_size_threshold,
+        SAMPLE_SIZE_TARGET_MAPE_PCT,
+    )
+    readme_path = _write_readme(
+        generation_summary,
+        results,
+        r2_analysis=r2_analysis,
+        sensitivity_results=sensitivity_results,
+        sample_size_results=sample_size_results,
+        sample_size_threshold=sample_size_threshold,
+    )
 
     print("Mock completeness benchmark complete.")
     print(f"Rows analysed: {len(model_frame)}")
     print(f"Results table: {results_path}")
     print(f"Sensitivity results: {sensitivity_results_path}")
     print(f"Sensitivity error table: {sensitivity_error_table_path}")
+    print(f"Sample-size results: {sample_size_results_path}")
+    print(f"Sample-size run results: {sample_size_run_results_path}")
     print(f"Synthetic feature summary: {feature_summary_path}")
     print(f"Generation spec: {generation_path}")
     print(f"Precision plot: {precision_plot_path}")
     print(f"Fold plot: {fold_plot_path}")
     print(f"Sensitivity plot: {sensitivity_plot_path}")
     print(f"Acceptance curve plot: {acceptance_curve_path}")
+    print(f"Sample-size plot: {sample_size_plot_path}")
     print(f"Required R2 analysis: {r2_analysis_path}")
+    print(f"Sample-size thresholds: {sample_size_threshold_path}")
     print(f"README: {readme_path}")
     print(
         f"To reach {TARGET_MAPE_PCT:.0f}% MAPE, need log-R2 >= {r2_analysis['required_log_r2']:.3f} "
         f"(required log-sigma {r2_analysis['required_log_residual_sigma']:.3f})."
     )
+    for _, threshold_row in sample_size_threshold.iterrows():
+        share_label = _format_sample_size_signal_share(float(threshold_row["signal_share_of_current_residual_variance"]))
+        if bool(threshold_row["threshold_reached"]):
+            print(
+                f"To reach {SAMPLE_SIZE_TARGET_MAPE_PCT:.0f}% rolling-origin MAPE under the {share_label} scenario, "
+                f"need about {threshold_row['estimated_minimum_rows']:.0f} rows "
+                f"(~{threshold_row['estimated_observed_capture_years']:.1f} years at "
+                f"{CAPTURE_RECORDS_PER_YEAR} rows/year)."
+            )
+        else:
+            print(
+                f"Under the {share_label} scenario, the analysed sample-size grid does not reach "
+                f"{SAMPLE_SIZE_TARGET_MAPE_PCT:.0f}% rolling-origin MAPE."
+            )
     print(results.loc[:, ["label", "rolling_mean_mape_pct", "headline_fold_mape_pct", "random_5_fold_mean_mape_pct"]].to_string(index=False))
     print()
     print(sensitivity_error_table.to_string(index=False))
+    print()
+    print(sample_size_threshold.to_string(index=False))
+    print()
+    print(sample_size_results.to_string(index=False))
 
 
 if __name__ == "__main__":
