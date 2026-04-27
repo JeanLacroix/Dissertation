@@ -3,6 +3,9 @@
     "model\\artifacts\\deployment_justification\\change_d_model_vs_baseline_by_fold.png",
     "model\\artifacts\\deployment_justification\\refit_tradeoff_path.png",
     "model\\artifacts\\deployment_justification\\retrieval_universe_heatmap.png",
-    "model\\artifacts\\deployment_justification\\benchmark_cell_sample_sizes.png"
+    "model\\artifacts\\deployment_justification\\preqin_raw_vs_retrieval_heatmaps.png",
+    "model\\artifacts\\deployment_justification\\preqin_country_density_pre_cut.png",
+    "model\\artifacts\\deployment_justification\\benchmark_cell_sample_sizes.png",
+    "model\\artifacts\\deployment_justification\\preqin_missing_values_summary.csv"
   ]
 }

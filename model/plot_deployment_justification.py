@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from textwrap import fill
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from .chart_palette import ACCENT, DARK, LIGHT, MUTED, PALE, PRIMARY, SECONDARY, green_cmap
+from .pipeline import assign_country_group, canonicalise_country, load_preqin_transactions
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS_DIR = PROJECT_ROOT / "model" / "artifacts"
@@ -16,6 +18,21 @@ REFIT_DIR = ARTIFACTS_DIR / "stage_two_refits"
 OUTPUT_DIR = ARTIFACTS_DIR / "deployment_justification"
 METADATA_PATH = ARTIFACTS_DIR / "metadata.json"
 COMPS_SAMPLE_PATH = ARTIFACTS_DIR / "comps_sample.parquet"
+
+KEY_PREQIN_MISSING_VALUE_FIELDS = [
+    ("DEAL TYPE", "Used to keep only single-asset transactions in the deployed retrieval sample."),
+    ("PRIMARY ASSET TYPE", "Defines the asset-type cells used in retrieval and benchmarking."),
+    ("ASSET REGIONS", "Used to keep only European transactions before modelling."),
+    ("ASSET COUNTRIES", "Needed to map each deal into the country-group heatmaps and benchmark cells."),
+    ("ASSET CITIES", "Context field for city-level retrieval output; not a hard filter in the pipeline."),
+    ("DEAL DATE", "Required to place each deal in the rolling-origin evaluation timeline."),
+    ("DEAL SIZE (EUR MN)", "Model target and retrieval anchor; rows without it are dropped."),
+    ("TOTAL SIZE (SQ. M.)", "Core size predictor and price-per-sqm denominator; rows without it are dropped."),
+    (
+        "INITIAL CAPITALIZATION RATE (%)",
+        "Potential valuation feature, but effectively unusable because the raw workbook is almost entirely blank.",
+    ),
+]
 
 SPEC_FILES = [
     ("A", "change_a_metrics.json"),
@@ -29,6 +46,133 @@ SPEC_FILES = [
 
 def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _format_int(value: Any) -> str:
+    return f"{int(value):,}"
+
+
+def _build_heatmap_counts(
+    frame: pd.DataFrame,
+    *,
+    row_field: str,
+    col_field: str,
+    row_order: list[str],
+    col_order: list[str],
+) -> pd.DataFrame:
+    return (
+        frame.groupby([row_field, col_field], observed=True)
+        .size()
+        .unstack(fill_value=0)
+        .reindex(index=row_order, columns=col_order, fill_value=0)
+    )
+
+
+def _draw_counts_heatmap(
+    ax: plt.Axes,
+    counts: pd.DataFrame,
+    *,
+    title: str,
+    cmap_name: str,
+    note: str | None = None,
+) -> Any:
+    image = ax.imshow(counts.to_numpy(), cmap=green_cmap(cmap_name), aspect="auto")
+    ax.set_xticks(np.arange(len(counts.columns)), counts.columns.tolist(), rotation=20, ha="right")
+    ax.set_yticks(np.arange(len(counts.index)), counts.index.tolist())
+    ax.set_xlabel("Country group")
+    ax.set_ylabel("Asset type")
+    ax.set_title(title)
+
+    for row in range(counts.shape[0]):
+        for col in range(counts.shape[1]):
+            ax.text(col, row, str(int(counts.iat[row, col])), ha="center", va="center", fontsize=9)
+
+    if note:
+        ax.text(
+            0.0,
+            -0.18,
+            note,
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=9,
+            color=MUTED,
+        )
+    return image
+
+
+def _build_raw_preqin_heatmap_counts(raw: pd.DataFrame, metadata: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, int]]:
+    asset_order = metadata["asset_type_levels"]
+    country_order = metadata["country_group_levels"]
+
+    frame = raw.copy()
+    frame["primary_asset_type"] = frame["PRIMARY ASSET TYPE"].astype(str).str.strip()
+    unsupported_asset_mask = ~frame["primary_asset_type"].isin(asset_order)
+    unsupported_asset_rows = int(unsupported_asset_mask.sum())
+    frame = frame.loc[~unsupported_asset_mask].copy()
+    frame = frame.loc[frame["ASSET COUNTRIES"].notna()].copy()
+    frame["country"] = frame["ASSET COUNTRIES"].map(canonicalise_country)
+    frame["country_group"] = frame["country"].map(assign_country_group)
+    frame["primary_asset_type"] = pd.Categorical(frame["primary_asset_type"], categories=asset_order)
+    frame["country_group"] = pd.Categorical(frame["country_group"], categories=country_order)
+
+    counts = _build_heatmap_counts(
+        frame,
+        row_field="primary_asset_type",
+        col_field="country_group",
+        row_order=asset_order,
+        col_order=country_order,
+    )
+    stats = {
+        "raw_total_rows": int(len(raw)),
+        "counted_rows": int(len(frame)),
+        "missing_country_rows": int(raw["ASSET COUNTRIES"].isna().sum()),
+        "unsupported_asset_rows": unsupported_asset_rows,
+    }
+    return counts, stats
+
+
+def _build_filtered_retrieval_heatmap_counts(comps: pd.DataFrame, metadata: dict[str, Any]) -> pd.DataFrame:
+    return _build_heatmap_counts(
+        comps,
+        row_field="asset_type",
+        col_field="country",
+        row_order=metadata["asset_type_levels"],
+        col_order=metadata["country_group_levels"],
+    )
+
+
+def _build_preqin_missing_value_summaries(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    full_summary = pd.DataFrame(
+        {
+            "column": raw.columns,
+            "non_missing_rows": raw.notna().sum().values,
+            "missing_rows": raw.isna().sum().values,
+            "missing_pct": (raw.isna().mean() * 100.0).values,
+        }
+    ).sort_values(["missing_pct", "missing_rows", "column"], ascending=[False, False, True]).reset_index(drop=True)
+
+    key_spec = pd.DataFrame(KEY_PREQIN_MISSING_VALUE_FIELDS, columns=["column", "pipeline_role"])
+    key_summary = key_spec.merge(full_summary, on="column", how="left")
+    key_summary["pipeline_role"] = key_summary["pipeline_role"].map(lambda text: fill(text, width=44))
+    return full_summary, key_summary
+
+
+def _build_raw_country_density(raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    frame = raw.loc[raw["ASSET COUNTRIES"].notna()].copy()
+    frame["country"] = frame["ASSET COUNTRIES"].map(lambda value: canonicalise_country(str(value).split(",")[0]))
+    counts = frame["country"].value_counts().rename_axis("country").reset_index(name="deal_count")
+    counts["share_pct"] = counts["deal_count"] / counts["deal_count"].sum() * 100.0
+    counts = counts.sort_values(["deal_count", "country"], ascending=[True, True]).reset_index(drop=True)
+    return counts, int(raw["ASSET COUNTRIES"].isna().sum())
+
+
+def _write_preqin_missing_value_outputs(raw: pd.DataFrame) -> list[Path]:
+    full_summary, _ = _build_preqin_missing_value_summaries(raw)
+
+    csv_path = OUTPUT_DIR / "preqin_missing_values_summary.csv"
+    full_summary.to_csv(csv_path, index=False)
+    return [csv_path]
 
 
 def _extract_refit_row(label: str, metrics: dict[str, Any]) -> dict[str, Any]:
@@ -139,32 +283,62 @@ def _plot_refit_tradeoff(summary: pd.DataFrame) -> Path:
 
 
 def _plot_retrieval_universe_heatmap(comps: pd.DataFrame, metadata: dict[str, Any]) -> Path:
-    asset_order = metadata["asset_type_levels"]
-    country_order = metadata["country_group_levels"]
-    counts = (
-        comps.groupby(["asset_type", "country"], observed=True)
-        .size()
-        .unstack(fill_value=0)
-        .reindex(index=asset_order, columns=country_order, fill_value=0)
-    )
+    counts = _build_filtered_retrieval_heatmap_counts(comps, metadata)
 
     fig, ax = plt.subplots(figsize=(9.5, 6.5))
-    image = ax.imshow(counts.to_numpy(), cmap=green_cmap("retrieval_universe"), aspect="auto")
-    ax.set_xticks(np.arange(len(country_order)), country_order, rotation=20, ha="right")
-    ax.set_yticks(np.arange(len(asset_order)), asset_order)
-    ax.set_xlabel("Country group")
-    ax.set_ylabel("Asset type")
-    ax.set_title("The deployed retrieval universe has breadth, but coverage is uneven")
-
-    for row in range(counts.shape[0]):
-        for col in range(counts.shape[1]):
-            ax.text(col, row, str(int(counts.iat[row, col])), ha="center", va="center", fontsize=9)
-
+    image = _draw_counts_heatmap(
+        ax,
+        counts,
+        title="The deployed retrieval universe has breadth, but coverage is uneven",
+        cmap_name="retrieval_universe",
+    )
     colorbar = fig.colorbar(image, ax=ax, shrink=0.9)
     colorbar.set_label("Comparable count")
     fig.tight_layout()
 
     output_path = OUTPUT_DIR / "retrieval_universe_heatmap.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return output_path
+
+
+def _plot_raw_vs_retrieval_heatmaps(raw: pd.DataFrame, comps: pd.DataFrame, metadata: dict[str, Any]) -> Path:
+    raw_counts, raw_stats = _build_raw_preqin_heatmap_counts(raw, metadata)
+    retrieval_counts = _build_filtered_retrieval_heatmap_counts(comps, metadata)
+
+    fig, axes = plt.subplots(1, 2, figsize=(18, 7))
+    raw_note = (
+        f"Counted rows: {_format_int(raw_stats['counted_rows'])} / {_format_int(raw_stats['raw_total_rows'])}. "
+        f"{_format_int(raw_stats['unsupported_asset_rows'])} raw rows sit in non-deployed asset types "
+        f"(Niche or Land), and {_format_int(raw_stats['missing_country_rows'])} rows have missing asset country."
+    )
+    filtered_note = f"Counted rows: {_format_int(len(comps))}. Current filtered comparable universe."
+
+    raw_image = _draw_counts_heatmap(
+        axes[0],
+        raw_counts,
+        title="Original Preqin workbook before dissertation filters",
+        cmap_name="preqin_raw_workbook",
+        note=raw_note,
+    )
+    filtered_image = _draw_counts_heatmap(
+        axes[1],
+        retrieval_counts,
+        title="Filtered dissertation retrieval universe",
+        cmap_name="preqin_filtered_retrieval",
+        note=filtered_note,
+    )
+    axes[1].set_ylabel("")
+
+    raw_colorbar = fig.colorbar(raw_image, ax=axes[0], shrink=0.88)
+    raw_colorbar.set_label("Raw deal count")
+    filtered_colorbar = fig.colorbar(filtered_image, ax=axes[1], shrink=0.88)
+    filtered_colorbar.set_label("Comparable count")
+
+    fig.suptitle("Preqin coverage narrows materially once the dissertation retrieval filters are applied", y=0.98)
+    fig.tight_layout(rect=[0, 0.04, 1, 0.95], w_pad=2.5)
+
+    output_path = OUTPUT_DIR / "preqin_raw_vs_retrieval_heatmaps.png"
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return output_path
@@ -194,10 +368,53 @@ def _plot_benchmark_cell_sizes(metadata: dict[str, Any]) -> Path:
     return output_path
 
 
+def _plot_raw_country_density_pre_cut(raw: pd.DataFrame) -> Path:
+    counts, missing_country_rows = _build_raw_country_density(raw)
+
+    fig_height = max(8.0, len(counts) * 0.28)
+    fig, ax = plt.subplots(figsize=(11, fig_height))
+    bars = ax.barh(counts["country"], counts["share_pct"], color=PRIMARY, alpha=0.9)
+
+    for bar, (_, row) in zip(bars, counts.iterrows(), strict=False):
+        ax.text(
+            float(bar.get_width()) + 0.15,
+            bar.get_y() + bar.get_height() / 2,
+            f"{row['share_pct']:.1f}% ({_format_int(row['deal_count'])})",
+            va="center",
+            fontsize=8,
+            color=DARK,
+        )
+
+    ax.set_xlabel("Share of raw pre-cut deals with a known country (%)")
+    ax.set_ylabel("Country")
+    ax.set_title("Raw Preqin workbook before filtering: deal density by country")
+    ax.grid(axis="x", alpha=0.25)
+    ax.set_axisbelow(True)
+    ax.text(
+        0.0,
+        -0.02,
+        f"Known-country rows: {_format_int(int(counts['deal_count'].sum()))}. "
+        f"Rows with missing asset country omitted: {_format_int(missing_country_rows)}. "
+        f"If a raw cell lists multiple countries, the first listed country is used here.",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=9,
+        color=MUTED,
+    )
+    fig.tight_layout(rect=[0, 0.02, 1, 0.98])
+
+    output_path = OUTPUT_DIR / "preqin_country_density_pre_cut.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return output_path
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     metadata = _load_json(METADATA_PATH)
     comps = pd.read_parquet(COMPS_SAMPLE_PATH)
+    raw_preqin = load_preqin_transactions()
     change_d_metrics = _load_json(REFIT_DIR / "change_d_metrics.json")
     refit_summary = _load_refit_summary()
 
@@ -205,8 +422,11 @@ def main() -> None:
         _plot_change_d_fold_comparison(change_d_metrics),
         _plot_refit_tradeoff(refit_summary),
         _plot_retrieval_universe_heatmap(comps, metadata),
+        _plot_raw_vs_retrieval_heatmaps(raw_preqin, comps, metadata),
+        _plot_raw_country_density_pre_cut(raw_preqin),
         _plot_benchmark_cell_sizes(metadata),
     ]
+    outputs.extend(_write_preqin_missing_value_outputs(raw_preqin))
 
     manifest = {"generated_files": [str(path.relative_to(PROJECT_ROOT)) for path in outputs]}
     (OUTPUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")

@@ -14,14 +14,14 @@ At signal_share = 95% with 8 synthetic features, random 5-fold mean MAPE reaches
 
 ## How many rows would be needed to reach 20% rolling-origin MAPE?
 
-This layer holds the richest mock-data scenario fixed at +8 synthetic features, then re-runs the rolling-origin benchmark on 30 repeated year-stratified subsamples at each sample size under three completeness assumptions: 100% signal (upper bound), 95% signal, 85% signal. Year stratification preserves the 2021-2026 fold structure so the low-N curves stay comparable to the headline full-sample benchmark.
+This layer holds the richest mock-data scenario fixed at +8 synthetic features with 100% explainable residual-variance share, then re-runs the rolling-origin benchmark on 30 repeated year-stratified subsamples at each sample size. Year stratification preserves the 2021-2026 fold structure so the low-N curve stays comparable to the headline full-sample benchmark.
 
-- Under the **100% signal (upper bound)** scenario, the full 686-row sample records mean rolling-origin MAPE of **9.1%**. The mean curve crosses 20% at roughly **N* = 123 rows**, bracketed by 120 and 150 rows, which corresponds to about **3.8 years** at 32 rows per year.
-- Under the **95% signal** scenario, the full 686-row sample records mean rolling-origin MAPE of **17.1%**. The mean curve crosses 20% at roughly **N* = 299 rows**, bracketed by 200 and 300 rows, which corresponds to about **9.3 years** at 32 rows per year.
-- Under the **85% signal** scenario, the full 686-row sample records mean rolling-origin MAPE of **26.4%**. Even the largest analysed sample on this grid does not push the mean curve below 20%.
+At the full analysis sample (686 rows), the mean rolling-origin MAPE for this scenario is 9.1%.
+
+The mean curve crosses the 20% line at roughly **N* = 123 rows**, bracketed by 120 and 150 rows on the discrete grid. Using the observed capture pace assumption of 32 rows per year, that corresponds to about **3.8 years** of capture.
 
 Caveats:
 - The curve uses the current Preqin sample structure as a stand-in for what internal Alantra capture might look like.
-- The synthetic features are imposed by construction; the 100% signal-share case is an explicit upper bound, while 95% and 85% remain stylised scenario tests rather than observed production states.
+- The synthetic features are imposed by construction, and the 100% signal-share case is an explicit upper-bound benchmark rather than an observed production state.
 - At low N the country-group fixed effects and yearly folds become thin; widening uncertainty is part of the result, not a bug.
 
