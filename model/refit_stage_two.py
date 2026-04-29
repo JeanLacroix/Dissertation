@@ -1,3 +1,4 @@
+"""Run the stage-two refit chain and export comparison artefacts."""
 from __future__ import annotations
 
 import json
@@ -43,6 +44,7 @@ ROLLING_FOLD_SPECS = [
 
 @dataclass(frozen=True)
 class RefitSpec:
+    """Describe one specification in the stage-two refit chain."""
     name: str
     description: str
     exclude_asset_types: tuple[str, ...] = ()
@@ -56,6 +58,7 @@ class RefitSpec:
 
 @dataclass(frozen=True)
 class RefitResult:
+    """Bundle fitted outputs and diagnostics for one refit specification."""
     spec: RefitSpec
     model: Any
     model_frame: pd.DataFrame
@@ -121,11 +124,13 @@ CHANGE_E_SPEC = RefitSpec(
 
 
 def _active_levels(all_levels: list[str], excluded_levels: tuple[str, ...]) -> list[str]:
+    """Active levels."""
     excluded = set(excluded_levels)
     return [level for level in all_levels if level not in excluded]
 
 
 def _build_formula(spec: RefitSpec, include_year_built: bool) -> str:
+    """Build formula."""
     if spec.use_size_asset_interactions:
         size_and_asset = "log_total_size_sqm * C(primary_asset_type)"
     else:
@@ -149,6 +154,7 @@ def _apply_spec_filters(
     pipeline_metadata: dict[str, Any],
     spec: RefitSpec,
 ) -> tuple[pd.DataFrame, list[str], list[str], bool, int]:
+    """Apply spec filters."""
     frame = dataset.copy()
     if spec.exclude_asset_types:
         frame = frame.loc[~frame["primary_asset_type"].astype(str).isin(spec.exclude_asset_types)].copy()
@@ -173,6 +179,7 @@ def _apply_spec_filters(
 
 
 def _apply_winsor_bounds(frame: pd.DataFrame, lower_bound: float, upper_bound: float) -> pd.DataFrame:
+    """Apply winsor bounds."""
     out = frame.copy()
     out["price_per_sqm_winsorized_eur"] = out["price_per_sqm_eur"].clip(lower_bound, upper_bound)
     out["deal_size_winsorized_eur_mn"] = out["price_per_sqm_winsorized_eur"] * out["TOTAL SIZE (SQ. M.)"] / 1_000_000
@@ -184,12 +191,14 @@ def _apply_winsor_bounds(frame: pd.DataFrame, lower_bound: float, upper_bound: f
 
 
 def _winsor_bounds_from(frame: pd.DataFrame, spec: RefitSpec) -> tuple[float, float]:
+    """Winsor bounds from."""
     lower_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_lower_quantile))
     upper_bound = float(frame["price_per_sqm_eur"].quantile(spec.winsor_upper_quantile))
     return lower_bound, upper_bound
 
 
 def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], spec: RefitSpec) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Apply spec frame."""
     filtered, asset_levels, country_levels, include_year_built, rows_removed_for_missing_year_built = _apply_spec_filters(
         dataset, pipeline_metadata, spec
     )
@@ -213,6 +222,7 @@ def _apply_spec_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], 
 
 
 def _map_prediction_year_effect(year_value: int, available_years: list[int]) -> int:
+    """Map prediction year effect."""
     capped_year = min(int(year_value), YEAR_FE_CAP)
     eligible_years = [year for year in available_years if year <= capped_year]
     if eligible_years:
@@ -221,6 +231,7 @@ def _map_prediction_year_effect(year_value: int, available_years: list[int]) -> 
 
 
 def _prepare_frames_for_fit(train_frame: pd.DataFrame, test_frame: pd.DataFrame, spec: RefitSpec) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Prepare frames for fit."""
     train = train_frame.copy()
     test = test_frame.copy()
     if spec.temporal_mode == "year_fe":
@@ -235,6 +246,7 @@ def _prepare_frames_for_fit(train_frame: pd.DataFrame, test_frame: pd.DataFrame,
 
 
 def _prepare_full_fit_frame(model_frame: pd.DataFrame, spec: RefitSpec) -> pd.DataFrame:
+    """Prepare full fit frame."""
     frame = model_frame.copy()
     if spec.temporal_mode == "year_fe":
         frame["model_year_effect"] = frame["transaction_year"].astype(int).clip(upper=YEAR_FE_CAP)
@@ -250,6 +262,7 @@ def _run_fold(
     fold_name: str,
     fold_aware_winsor: bool = True,
 ) -> dict[str, Any]:
+    """Run fold."""
     if fold_aware_winsor:
         lower_bound, upper_bound = _winsor_bounds_from(train_frame, spec)
         train_win = _apply_winsor_bounds(train_frame, lower_bound, upper_bound)
@@ -280,6 +293,7 @@ def _run_rolling_origin_cv(
     formula: str,
     fold_aware_winsor: bool = True,
 ) -> dict[str, Any]:
+    """Run rolling origin cross-validation."""
     folds: list[dict[str, Any]] = []
     for fold_name, train_years, test_year in ROLLING_FOLD_SPECS:
         train_frame = model_frame.loc[model_frame["transaction_year"].isin(train_years)].copy()
@@ -311,6 +325,7 @@ def _run_random_5_fold_cv(
     formula: str,
     fold_aware_winsor: bool = True,
 ) -> dict[str, Any]:
+    """Run random 5 fold cross-validation."""
     rng = np.random.default_rng(RANDOM_SEED)
     order = np.arange(len(model_frame))
     rng.shuffle(order)
@@ -342,6 +357,7 @@ def _run_random_5_fold_cv(
 
 
 def _coefficient_table(model) -> pd.DataFrame:
+    """Coefficient table."""
     return pd.DataFrame(
         {
             "term": model.params.index,
@@ -353,6 +369,7 @@ def _coefficient_table(model) -> pd.DataFrame:
 
 
 def _size_slopes_by_asset_type(coefficient_table: pd.DataFrame, asset_levels: list[str]) -> dict[str, float]:
+    """Size slopes by asset type."""
     lookup = coefficient_table.set_index("term")["coef"].to_dict()
     base_slope = float(lookup.get("log_total_size_sqm", np.nan))
     reference_asset = asset_levels[0] if asset_levels else None
@@ -372,6 +389,7 @@ def _implausibility_notes(
     asset_levels: list[str],
     country_levels: list[str],
 ) -> list[str]:
+    """Implausibility notes."""
     notes: list[str] = []
     table = coefficient_table.set_index("term")
 
@@ -410,6 +428,7 @@ def evaluate_spec(
     spec: RefitSpec,
     fold_aware_winsor: bool = True,
 ) -> RefitResult:
+    """Evaluate spec."""
     model_frame, prep_metadata = _apply_spec_frame(dataset, pipeline_metadata, spec)
     formula = _build_formula(spec, include_year_built=prep_metadata["include_year_built"])
     if fold_aware_winsor:
@@ -445,6 +464,7 @@ def evaluate_spec(
 
 
 def _sign_flips(current_table: pd.DataFrame, previous_table: pd.DataFrame, compare_country_terms: bool = True) -> list[str]:
+    """Sign flips."""
     current = current_table.set_index("term")["coef"]
     previous = previous_table.set_index("term")["coef"]
     flips: list[str] = []
@@ -461,12 +481,14 @@ def _sign_flips(current_table: pd.DataFrame, previous_table: pd.DataFrame, compa
 
 
 def _other_europe_composition(model_frame: pd.DataFrame) -> dict[str, int]:
+    """Other europe composition."""
     other_europe = model_frame.loc[model_frame["country_group"].astype(str).eq("Other Europe"), "country"]
     counts = other_europe.value_counts().sort_values(ascending=False)
     return {str(country): int(count) for country, count in counts.items()}
 
 
 def _build_final_metadata(result: RefitResult) -> dict[str, Any]:
+    """Build final metadata."""
     metadata = {
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "specification_name": result.spec.name,
@@ -548,6 +570,7 @@ def _build_final_metadata(result: RefitResult) -> dict[str, Any]:
 
 
 def _headline_fold_extra_metrics(result: RefitResult) -> dict[str, Any]:
+    """Headline fold extra metrics."""
     metrics = {
         "headline_fold_mape_pct": float(result.rolling_origin["headline_fold"]["model_metrics"]["mape_pct"]),
         "headline_fold_baseline_mape_pct": float(result.rolling_origin["headline_fold"]["baseline_metrics"]["mape_pct"]),
@@ -566,6 +589,7 @@ def _headline_fold_extra_metrics(result: RefitResult) -> dict[str, Any]:
 
 
 def _save_refit_outputs(result: RefitResult, sign_flips_vs_previous: list[str], previous_spec_name: str) -> None:
+    """Save refit outputs."""
     REFIT_DIAGNOSTICS_DIR.mkdir(parents=True, exist_ok=True)
     coefficient_path = REFIT_DIAGNOSTICS_DIR / f"{result.spec.name}_coefficients.csv"
     metrics_path = REFIT_DIAGNOSTICS_DIR / f"{result.spec.name}_metrics.json"
@@ -593,6 +617,7 @@ def _save_refit_outputs(result: RefitResult, sign_flips_vs_previous: list[str], 
 
 
 def _export_promoted_result(result: RefitResult) -> None:
+    """Export promoted result."""
     metadata = _build_final_metadata(result)
     residual_pool = _build_bootstrap_residual_pool(result.model)
     comps_sample = build_anonymised_comps_sample(result.model_frame)
@@ -600,6 +625,7 @@ def _export_promoted_result(result: RefitResult) -> None:
 
 
 def run_change_series() -> list[dict[str, Any]]:
+    """Run change series."""
     dataset, pipeline_metadata = build_training_frame()
     baseline = evaluate_spec(dataset, pipeline_metadata, BASELINE_SPEC)
     previous_result = baseline

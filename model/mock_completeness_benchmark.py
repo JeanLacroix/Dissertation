@@ -1,3 +1,4 @@
+"""Benchmark the error floor under synthetic richer-data completeness scenarios."""
 from __future__ import annotations
 
 import json
@@ -83,16 +84,19 @@ MOCK_SPECS = [
 
 
 def _make_group_effect(values: pd.Series, rng: np.random.Generator, scale: float) -> np.ndarray:
+    """Make group effect."""
     unique_values = sorted(values.astype(str).unique().tolist())
     lookup = {value: draw for value, draw in zip(unique_values, rng.normal(0.0, scale, size=len(unique_values)), strict=False)}
     return values.astype(str).map(lookup).to_numpy(dtype=float)
 
 
 def _standardize(array: np.ndarray) -> np.ndarray:
+    """Standardize the current helper."""
     return (array - array.mean()) / array.std(ddof=0)
 
 
 def _build_mock_frame(model_frame: pd.DataFrame, signal_share: float) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Build mock frame."""
     rng = np.random.default_rng(RANDOM_SEED)
     frame = model_frame.copy()
 
@@ -167,6 +171,7 @@ def _build_mock_frame(model_frame: pd.DataFrame, signal_share: float) -> tuple[p
 
 
 def _frame_for_target(frame: pd.DataFrame, target_mode: str) -> pd.DataFrame:
+    """Frame for target."""
     model_frame = frame.copy()
     if target_mode == "mock":
         model_frame["log_deal_size_eur_mn"] = model_frame["mock_log_deal_size_eur_mn"]
@@ -176,6 +181,7 @@ def _frame_for_target(frame: pd.DataFrame, target_mode: str) -> pd.DataFrame:
 
 
 def _evaluate_spec(frame: pd.DataFrame, spec: dict[str, str]) -> dict[str, Any]:
+    """Evaluate spec."""
     model_frame = _frame_for_target(frame, spec["target_mode"])
     rolling = run_rolling_origin_cv(model_frame, spec["formula"])
     random_5_fold = run_random_cv(model_frame, spec["formula"])
@@ -200,6 +206,7 @@ def _evaluate_spec(frame: pd.DataFrame, spec: dict[str, str]) -> dict[str, Any]:
 
 
 def _build_sensitivity_error_table(results: pd.DataFrame) -> pd.DataFrame:
+    """Build sensitivity error table."""
     pivot = results.loc[results["target_mode"].eq("mock")].pivot_table(
         index="signal_share_of_current_residual_variance",
         columns="spec_name",
@@ -211,12 +218,14 @@ def _build_sensitivity_error_table(results: pd.DataFrame) -> pd.DataFrame:
 
 
 def _build_sample_size_grid(full_sample_size: int) -> list[int]:
+    """Build sample size grid."""
     grid = {min(candidate, full_sample_size) for candidate in SAMPLE_SIZE_GRID_CANDIDATES}
     grid.add(full_sample_size)
     return sorted(int(value) for value in grid if int(value) > 0)
 
 
 def _allocate_year_counts(year_counts: pd.Series, sample_size: int) -> pd.Series:
+    """Allocate year counts."""
     counts = year_counts.astype(int).sort_index()
     if sample_size > int(counts.sum()):
         raise ValueError("Requested sample size exceeds the available frame size.")
@@ -265,6 +274,7 @@ def _allocate_year_counts(year_counts: pd.Series, sample_size: int) -> pd.Series
 
 
 def _year_stratified_subsample(model_frame: pd.DataFrame, sample_size: int, random_state: int) -> pd.DataFrame:
+    """Year stratified subsample."""
     if sample_size >= len(model_frame):
         return model_frame.copy().reset_index(drop=True)
 
@@ -282,6 +292,7 @@ def _year_stratified_subsample(model_frame: pd.DataFrame, sample_size: int, rand
 
 
 def _evaluate_sample_size_sensitivity(model_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    """Evaluate sample size sensitivity."""
     ultra_spec = next(spec for spec in MOCK_SPECS if spec["spec_name"] == ULTRA_COMPLETENESS_SPEC_NAME)
     sample_sizes = _build_sample_size_grid(len(model_frame))
     years = sorted(model_frame["transaction_year"].dropna().astype(int).unique().tolist())
@@ -380,6 +391,7 @@ def _evaluate_sample_size_sensitivity(model_frame: pd.DataFrame) -> tuple[pd.Dat
 
 
 def _estimate_sample_size_threshold(sample_size_results: pd.DataFrame, target_mape_pct: float) -> dict[str, Any]:
+    """Estimate sample size threshold."""
     curve = (
         sample_size_results.loc[sample_size_results["rolling_mean_mape_pct_mean"].notna()]
         .sort_values("sample_size_n")
@@ -429,6 +441,7 @@ def _estimate_sample_size_threshold(sample_size_results: pd.DataFrame, target_ma
 
 
 def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
+    """Plot precision benchmark."""
     plot_frame = results.loc[
         results["spec_name"].ne("real_change_d") & results["signal_share_of_current_residual_variance"].eq(BASE_SIGNAL_SHARE)
     ].copy().reset_index(drop=True)
@@ -472,6 +485,7 @@ def _plot_precision_benchmark(results: pd.DataFrame) -> Path:
 
 
 def _plot_sample_size_sensitivity(sample_size_results: pd.DataFrame, threshold_summary: dict[str, Any], target_mape_pct: float) -> Path:
+    """Plot sample size sensitivity."""
     plot_frame = (
         sample_size_results.loc[sample_size_results["rolling_mean_mape_pct_mean"].notna()]
         .sort_values("sample_size_n")
@@ -522,6 +536,7 @@ def _plot_sample_size_sensitivity(sample_size_results: pd.DataFrame, threshold_s
 
 
 def _plot_fold_benchmark(results: pd.DataFrame) -> Path:
+    """Plot fold benchmark."""
     plot_frame = results.loc[
         results["spec_name"].isin([
             "mock_observed_only",
@@ -560,6 +575,7 @@ def _plot_fold_benchmark(results: pd.DataFrame) -> Path:
 
 
 def _plot_sensitivity_envelope(results: pd.DataFrame) -> Path:
+    """Plot sensitivity envelope."""
     plot_frame = results.loc[results["target_mode"].eq("mock")].copy()
     x = plot_frame["signal_share_of_current_residual_variance"].astype(float).sort_values().unique()
     spec_order = [
@@ -604,6 +620,7 @@ def _plot_sensitivity_envelope(results: pd.DataFrame) -> Path:
 
 
 def _required_log_sigma_for_mape(mape_target_pct: float, samples: int = 500_000) -> float:
+    """Required log sigma for MAPE."""
     rng = np.random.default_rng(0)
     base = rng.standard_normal(samples)
     target = mape_target_pct / 100.0
@@ -623,6 +640,7 @@ def _required_log_r2_for_mape_target(
     mape_target_pct: float,
     log_target_variance: float,
 ) -> dict[str, float]:
+    """Required log R-squared for MAPE target."""
     sigma = _required_log_sigma_for_mape(mape_target_pct)
     sigma2 = sigma * sigma
     r2 = 1.0 - sigma2 / log_target_variance
@@ -636,6 +654,7 @@ def _required_log_r2_for_mape_target(
 
 
 def _plot_completeness_acceptance_curve(sensitivity_results: pd.DataFrame, target_mape_pct: float) -> Path:
+    """Plot completeness acceptance curve."""
     spec_order = [
         ("mock_observed_only", "Observed only", LIGHT),
         ("mock_partial_completeness", "+2 synthetic", TERTIARY),
@@ -689,6 +708,7 @@ def _write_readme(
     sample_size_results: pd.DataFrame | None = None,
     sample_size_threshold: dict[str, Any] | None = None,
 ) -> Path:
+    """Write README."""
     observed_row = results.loc[results["spec_name"].eq("mock_observed_only")].iloc[0]
     extensive_row = results.loc[results["spec_name"].eq("mock_extensive_dataset")].iloc[0]
     ultra_row = results.loc[results["spec_name"].eq("mock_ultra_completeness")].iloc[0]
@@ -772,6 +792,7 @@ On the real target, Change D records a rolling-origin mean MAPE of {real_row['ro
 
 
 def main() -> None:
+    """Run the module entry point."""
     MOCK_DIR.mkdir(parents=True, exist_ok=True)
     model_frame, _, _ = prepare_change_d_analysis_frame()
     mock_frame, generation_summary = _build_mock_frame(model_frame, signal_share=BASE_SIGNAL_SHARE)

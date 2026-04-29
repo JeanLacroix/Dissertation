@@ -1,3 +1,4 @@
+"""Load and score comparable transactions for the prototype UI."""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -31,6 +32,7 @@ PRICE_PER_SQM_BUCKET_BINS = [0, 1_000, 2_000, 3_000, 5_000, 7_500, 10_000, 15_00
 
 @dataclass(frozen=True)
 class ComparableQuery:
+    """Capture the filters used to retrieve comparable transactions."""
     asset_type: str
     country: str
     city: str
@@ -40,15 +42,18 @@ class ComparableQuery:
 
 
 def _slug_text(value: Any) -> str:
+    """Slug text."""
     return "".join(character if character.isalnum() else " " for character in str(value).lower()).strip()
 
 
 def _normalise_asset_type(value: str) -> str:
+    """Normalise asset type."""
     token = str(value or "").strip()
     return ASSET_TYPE_MAP.get(token, token)
 
 
 def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
+    """Format bucket labels."""
     labels: list[str] = []
     for lower, upper in zip(bins[:-1], bins[1:]):
         if np.isinf(upper):
@@ -59,6 +64,7 @@ def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
 
 
 def _bucket_midpoints(bins: list[float]) -> list[float]:
+    """Bucket midpoints."""
     midpoints: list[float] = []
     for lower, upper in zip(bins[:-1], bins[1:]):
         if np.isinf(upper):
@@ -69,10 +75,12 @@ def _bucket_midpoints(bins: list[float]) -> list[float]:
 
 
 def _bucket_midpoint_map(bins: list[float], unit: str) -> dict[str, float]:
+    """Bucket midpoint map."""
     return dict(zip(_format_bucket_labels(bins, unit), _bucket_midpoints(bins)))
 
 
 def _load_anonymised_comps_sample() -> pd.DataFrame:
+    """Load anonymised comparables sample."""
     if not COMPS_SAMPLE_PATH.exists():
         raise FileNotFoundError(
             "No comparable dataset is available. Commit the raw Preqin workbook or "
@@ -123,6 +131,7 @@ def _load_anonymised_comps_sample() -> pd.DataFrame:
 
 @lru_cache(maxsize=1)
 def load_prepared_comparables() -> pd.DataFrame:
+    """Load prepared comparables."""
     if DEFAULT_PREQIN_PATH.exists():
         frame = filter_preqin_transactions(load_preqin_transactions()).copy()
     else:
@@ -140,23 +149,27 @@ def load_prepared_comparables() -> pd.DataFrame:
 
 @lru_cache(maxsize=1)
 def load_scenario_reference() -> pd.DataFrame:
+    """Load scenario reference."""
     frame = pd.read_csv(SCENARIO_RESULTS_PATH)
     frame["scenario"] = frame["scenario"].astype(str)
     return frame
 
 
 def available_comparable_asset_types() -> list[str]:
+    """Return the available comparable asset types."""
     frame = load_prepared_comparables()
     return sorted(frame["primary_asset_type"].dropna().astype(str).unique().tolist())
 
 
 def available_comparable_countries() -> list[str]:
+    """Return the available comparable countries."""
     frame = load_prepared_comparables()
     return sorted(frame["country"].dropna().astype(str).unique().tolist())
 
 
 @lru_cache(maxsize=1)
 def comparable_dataset_status() -> dict[str, Any]:
+    """Comparable dataset status."""
     frame = load_prepared_comparables()
     using_raw_source = DEFAULT_PREQIN_PATH.exists()
     source_file = DEFAULT_PREQIN_PATH.name if using_raw_source else COMPS_SAMPLE_PATH.name
@@ -180,6 +193,7 @@ def comparable_dataset_status() -> dict[str, Any]:
 
 
 def classify_comparable_scenario(*, has_size: bool, has_year: bool, cap_rate_pct: float | None) -> dict[str, Any]:
+    """Classify comparable scenario."""
     if has_size and has_year:
         scenario_code = "A"
     elif has_size or has_year:
@@ -215,6 +229,7 @@ def _base_scored_pool(
     size_sqm: float | None,
     transaction_year: int | None,
 ) -> pd.DataFrame:
+    """Base scored pool."""
     scored = frame.copy()
     scored["country_match"] = scored["country"].eq(country).astype(float)
     city_token = _slug_text(city)
@@ -241,6 +256,7 @@ def _base_scored_pool(
 
 
 def retrieve_comparables(query: ComparableQuery, top_k: int = 10) -> dict[str, Any]:
+    """Retrieve comparables."""
     frame = load_prepared_comparables()
     asset_type = _normalise_asset_type(query.asset_type)
     country = canonicalise_country(query.country)
@@ -320,6 +336,7 @@ def retrieve_comparables(query: ComparableQuery, top_k: int = 10) -> dict[str, A
 
 
 def format_comparable_results(frame: pd.DataFrame) -> pd.DataFrame:
+    """Format comparable results."""
     if frame.empty:
         return pd.DataFrame(
             columns=[

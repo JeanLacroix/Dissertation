@@ -1,3 +1,4 @@
+"""Centralise project paths for the outreach prototype."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -20,5 +21,6 @@ EXPORTS_DIR = OUTREACH_DIR / "exports"
 
 
 def ensure_outreach_dirs() -> None:
+    """Ensure outreach dirs."""
     OUTREACH_DIR.mkdir(parents=True, exist_ok=True)
     EXPORTS_DIR.mkdir(parents=True, exist_ok=True)

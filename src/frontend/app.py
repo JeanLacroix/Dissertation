@@ -1,3 +1,4 @@
+"""Streamlit interface for the SCBSM outreach and comparables prototype."""
 from __future__ import annotations
 
 import html
@@ -104,6 +105,7 @@ TOUCHPOINT_LABELS = {
 
 
 def _csv_download_bytes(frame: pd.DataFrame) -> bytes:
+    """Csv download bytes."""
     output = io.StringIO()
     frame.to_csv(output, index=False)
     return output.getvalue().encode("utf-8")
@@ -116,6 +118,7 @@ def _workbook_download_bytes(
     history_frame: pd.DataFrame,
     comparable_frame: pd.DataFrame,
 ) -> bytes:
+    """Workbook download bytes."""
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         pd.DataFrame([evaluation]).to_excel(writer, index=False, sheet_name="Investor Fit")
@@ -127,12 +130,14 @@ def _workbook_download_bytes(
 
 
 def _load_method_metadata() -> dict[str, Any]:
+    """Load method metadata."""
     if not METADATA_PATH.exists():
         return {}
     return json.loads(METADATA_PATH.read_text(encoding="utf-8"))
 
 
 def _valuation_warning_text(method_metadata: dict[str, Any]) -> str:
+    """Valuation warning text."""
     default = "Point valuation is not reliable here. Use the comp set plus the cell median as a transparent benchmark."
     valuation = method_metadata.get("valuation_evaluation", {})
     rolling = valuation.get("rolling_origin", {}) if isinstance(valuation, dict) else {}
@@ -152,6 +157,7 @@ def _valuation_warning_text(method_metadata: dict[str, Any]) -> str:
 
 
 def _set_current_deal_state(payload: dict[str, Any]) -> None:
+    """Set current deal state."""
     baseline = build_deal_input(payload).as_dict()
     for field, state_key in DEAL_FIELD_KEYS.items():
         if field in {"cap_rate_known", "noi_known"}:
@@ -170,6 +176,7 @@ def _set_current_deal_state(payload: dict[str, Any]) -> None:
 
 
 def _ensure_current_deal_state() -> None:
+    """Ensure current deal state."""
     defaults = build_deal_input().as_dict()
     if LEAD_BANKER_KEY not in st.session_state:
         st.session_state[LEAD_BANKER_KEY] = "J. Dupont"
@@ -195,6 +202,7 @@ def _ensure_current_deal_state() -> None:
 
 
 def _read_current_deal_state() -> dict[str, Any]:
+    """Read current deal state."""
     cap_rate = (
         float(st.session_state[DEAL_FIELD_KEYS["cap_rate_pct"]])
         if st.session_state[DEAL_FIELD_KEYS["cap_rate_known"]]
@@ -223,14 +231,17 @@ def _read_current_deal_state() -> dict[str, Any]:
 
 
 def _escape(value: Any) -> str:
+    """Escape the current helper."""
     return html.escape("" if value is None else str(value))
 
 
 def _badge(text: str, tone: str = "neutral") -> str:
+    """Badge the current helper."""
     return f"<span class='adi-badge adi-badge--{tone}'>{_escape(text)}</span>"
 
 
 def _criteria_status_badge(status: str) -> str:
+    """Criteria status badge."""
     normalized = str(status or "").strip().lower()
     if normalized == "yes":
         return _badge("Yes", "success")
@@ -240,6 +251,7 @@ def _criteria_status_badge(status: str) -> str:
 
 
 def _nav_button(screen: str, label: str, *, primary: bool = False, small: bool = False, extra_query: str = "") -> str:
+    """Nav button."""
     classes = ["adi-link-button"]
     if primary:
         classes.append("adi-link-button--primary")
@@ -252,6 +264,7 @@ def _nav_button(screen: str, label: str, *, primary: bool = False, small: bool =
 
 
 def _section_intro(title: str, body: str) -> None:
+    """Section intro."""
     st.markdown(
         (
             "<div class='adi-section-intro'>"
@@ -264,10 +277,12 @@ def _section_intro(title: str, body: str) -> None:
 
 
 def _field_label(label: str) -> None:
+    """Field label."""
     st.markdown(f"<div class='adi-field-label'>{_escape(label)}</div>", unsafe_allow_html=True)
 
 
 def _card_html(label: str, value: str, *, note: str = "", accent: bool = False) -> str:
+    """Card HTML."""
     accent_class = " adi-card--accent" if accent else ""
     note_html = f"<div class='adi-card-note'>{_escape(note)}</div>" if note else ""
     return (
@@ -280,6 +295,7 @@ def _card_html(label: str, value: str, *, note: str = "", accent: bool = False) 
 
 
 def _banner_html(title: str, detail: str, *, tone: str) -> str:
+    """Banner HTML."""
     return (
         f"<div class='adi-banner adi-banner--{tone}'>"
         f"<div class='adi-banner-title'>{_escape(title)}</div>"
@@ -289,6 +305,7 @@ def _banner_html(title: str, detail: str, *, tone: str) -> str:
 
 
 def _table_html(frame: pd.DataFrame) -> str:
+    """Table HTML."""
     if frame.empty:
         return "<div class='adi-note'>No rows available.</div>"
     table = frame.to_html(index=False, escape=False, classes="adi-table", border=0)
@@ -296,26 +313,31 @@ def _table_html(frame: pd.DataFrame) -> str:
 
 
 def _format_money_mn(value: float | int | None) -> str:
+    """Format money mn."""
     if value is None or pd.isna(value):
         return "N/A"
     return f"EUR {float(value):,.1f}m"
 
 
 def _format_pct(value: float | int | None, decimals: int = 2) -> str:
+    """Format pct."""
     if value is None or pd.isna(value):
         return "N/A"
     return f"{float(value):,.{decimals}f}%"
 
 
 def _title_case_status(value: str) -> str:
+    """Title case status."""
     return str(value or "").replace("_", " ").title()
 
 
 def _touchpoint_display_name(value: str) -> str:
+    """Touchpoint display name."""
     return TOUCHPOINT_LABELS.get(str(value), _title_case_status(str(value)))
 
 
 def _history_export_frame(history: pd.DataFrame) -> pd.DataFrame:
+    """History export frame."""
     if history.empty:
         return pd.DataFrame(columns=["Date", "Mandate", "Action", "Detail", "Follow-up", "Notes"])
     display = history.copy()
@@ -329,6 +351,7 @@ def _history_export_frame(history: pd.DataFrame) -> pd.DataFrame:
 
 
 def _deal_from_staged_row(row: pd.Series) -> Any:
+    """Deal from staged row."""
     return build_deal_input(
         {
             "mandate_name": row["mandate_name"],
@@ -350,6 +373,7 @@ def _deal_from_staged_row(row: pd.Series) -> Any:
 
 
 def _mandate_option_label(*, deal: Any, status: str, mandate_id: str = "") -> str:
+    """Mandate option label."""
     base = (
         f"{deal.mandate_name} | {deal.asset_type} | {deal.zone or deal.country} | "
         f"EUR {deal.ticket_eur_mn:,.1f}m"
@@ -360,6 +384,7 @@ def _mandate_option_label(*, deal: Any, status: str, mandate_id: str = "") -> st
 
 
 def _available_mandate_options(context) -> tuple[dict[str, Any], str]:
+    """Return the available mandate options."""
     options: dict[str, Any] = {}
     current_label = _mandate_option_label(deal=context.current_deal, status="current")
     options[current_label] = context.current_deal
@@ -377,10 +402,12 @@ def _available_mandate_options(context) -> tuple[dict[str, Any], str]:
 
 
 def _slug_text(value: Any) -> str:
+    """Slug text."""
     return "".join(character if character.isalnum() else " " for character in str(value or "").lower()).strip()
 
 
 def _selected_investor_id() -> str:
+    """Return the selected investor ID."""
     investor = st.query_params.get("investor", "scbsm")
     if isinstance(investor, list):
         investor = investor[0] if investor else "scbsm"
@@ -388,6 +415,7 @@ def _selected_investor_id() -> str:
 
 
 def _selected_contact_row(context) -> pd.Series | None:
+    """Return the selected contact row."""
     contacts = context.contacts.copy()
     if contacts.empty:
         return None
@@ -399,6 +427,7 @@ def _selected_contact_row(context) -> pd.Series | None:
 
 
 def _contact_match_snapshot(row: pd.Series, context) -> dict[str, Any]:
+    """Contact match snapshot."""
     if str(row.get("contact_id", "")).strip().lower() == "scbsm":
         evaluation = context.scbsm_evaluation
         match_count = sum(
@@ -493,6 +522,7 @@ def _contact_match_snapshot(row: pd.Series, context) -> dict[str, Any]:
 
 
 def _investor_contacts_frame(context, search_value: str) -> pd.DataFrame:
+    """Investor contacts frame."""
     contacts = context.contacts.copy()
     if contacts.empty:
         return pd.DataFrame(columns=["Contact", "Company", "Coverage", "Ticket range", "Stage", "Owner", "Action"])
@@ -537,6 +567,7 @@ def _investor_contacts_frame(context, search_value: str) -> pd.DataFrame:
 
 
 def _investor_ranking_frame(context, top_n: int = INVESTOR_VALIDATION_TOP_N) -> pd.DataFrame:
+    """Investor ranking frame."""
     contacts = context.contacts.copy()
     if contacts.empty:
         return pd.DataFrame(
@@ -574,6 +605,7 @@ def _investor_ranking_frame(context, top_n: int = INVESTOR_VALIDATION_TOP_N) -> 
 
 
 def _criteria_dataframe(evaluation: dict[str, Any]) -> pd.DataFrame:
+    """Criteria dataframe."""
     return pd.DataFrame(
         [
             {
@@ -589,6 +621,7 @@ def _criteria_dataframe(evaluation: dict[str, Any]) -> pd.DataFrame:
 
 
 def _profile_edit_history_frame(profile_edits: pd.DataFrame) -> pd.DataFrame:
+    """Profile edit history frame."""
     if profile_edits.empty:
         return pd.DataFrame(columns=["Edited at", "Edited by", "Changed fields", "Note"])
     display = profile_edits.copy()
@@ -607,6 +640,7 @@ def _profile_edit_history_frame(profile_edits: pd.DataFrame) -> pd.DataFrame:
 
 
 def _small_history_frame(history: pd.DataFrame) -> pd.DataFrame:
+    """Small history frame."""
     if history.empty:
         return pd.DataFrame(columns=["Date", "Action"])
     display = history.copy().head(6)
@@ -616,6 +650,7 @@ def _small_history_frame(history: pd.DataFrame) -> pd.DataFrame:
 
 
 def _follow_up_state(history: pd.DataFrame, row: pd.Series) -> tuple[str, str]:
+    """Follow up state."""
     if str(row.get("touchpoint_type", "")) != "teaser_sent":
         return ("-", "neutral")
 
@@ -641,11 +676,13 @@ def _follow_up_state(history: pd.DataFrame, row: pd.Series) -> tuple[str, str]:
 
 
 def _follow_up_text(history: pd.DataFrame, row: pd.Series) -> str:
+    """Follow up text."""
     text, _ = _follow_up_state(history, row)
     return text
 
 
 def _follow_up_badge(history: pd.DataFrame, row: pd.Series) -> str:
+    """Follow up badge."""
     text, tone = _follow_up_state(history, row)
     if text == "-":
         return "—"
@@ -653,6 +690,7 @@ def _follow_up_badge(history: pd.DataFrame, row: pd.Series) -> str:
 
 
 def _history_detail_badge(touchpoint_type: str, status_value: str) -> str:
+    """History detail badge."""
     if touchpoint_type == "teaser_sent" and status_value == "sent":
         return _badge("Sent", "mint")
     if status_value == "sent":
@@ -667,6 +705,7 @@ def _history_detail_badge(touchpoint_type: str, status_value: str) -> str:
 
 
 def _outreach_history_frame(history: pd.DataFrame, *, include_example_if_empty: bool = False) -> tuple[pd.DataFrame, bool]:
+    """Outreach history frame."""
     if history.empty and include_example_if_empty:
         example_date = date.today().isoformat()
         example = pd.DataFrame(
@@ -701,12 +740,14 @@ def _outreach_history_frame(history: pd.DataFrame, *, include_example_if_empty: 
 
 
 def _normalise_screen(value: Any) -> str:
+    """Normalise screen."""
     selected = str(value or "dashboard").strip().lower()
     valid = {slug for slug, _ in SCREENS} | _SUB_SCREENS
     return selected if selected in valid else "dashboard"
 
 
 def _current_screen() -> str:
+    """Return the current screen."""
     value = st.query_params.get("screen", "dashboard")
     if isinstance(value, list):
         value = value[0] if value else "dashboard"
@@ -714,12 +755,14 @@ def _current_screen() -> str:
 
 
 def _navigate(screen: str) -> None:
+    """Navigate the current helper."""
     st.query_params.clear()
     st.query_params["screen"] = screen
     st.rerun()
 
 
 def _build_live_comparable_query(context) -> ComparableQuery:
+    """Build live comparable query."""
     asset_type = "Mixed Use" if context.current_deal.asset_type == "Mixed Commercial" else context.current_deal.asset_type
     transaction_year = pd.to_datetime(context.current_deal.transaction_date, errors="coerce").year
     return ComparableQuery(
@@ -733,6 +776,7 @@ def _build_live_comparable_query(context) -> ComparableQuery:
 
 
 def _widened_reference_results(query: ComparableQuery, top_k: int = 10) -> pd.DataFrame:
+    """Widened reference results."""
     frame = load_prepared_comparables()
     pool = frame.loc[frame["primary_asset_type"].eq(query.asset_type)].copy()
     if pool.empty:
@@ -786,6 +830,7 @@ def _widened_reference_results(query: ComparableQuery, top_k: int = 10) -> pd.Da
 
 
 def _match_badge(score: float | int | None) -> str:
+    """Match badge."""
     if score is None or pd.isna(score):
         return _badge("N/A", "neutral")
     value = min(100, max(0, int(round(float(score)))))
@@ -799,6 +844,7 @@ def _match_badge(score: float | int | None) -> str:
 
 
 def _comparables_display_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Comparables display frame."""
     if frame.empty:
         return pd.DataFrame(columns=["Rank", "Property", "Country", "Size", "EUR / sqm", "Year", "Match %"])
     display = frame.copy().reset_index(drop=True)
@@ -817,6 +863,7 @@ def _comparables_display_frame(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _profile_attribute_frame(profile: dict[str, Any]) -> pd.DataFrame:
+    """Profile attribute frame."""
     return pd.DataFrame(
         [
             {"Attribute": "Type", "Value": profile["investor_type"]},
@@ -845,6 +892,7 @@ def _profile_attribute_frame(profile: dict[str, Any]) -> pd.DataFrame:
 
 
 def _contact_profile_frame(contact: pd.Series) -> pd.DataFrame:
+    """Contact profile frame."""
     geography = " / ".join(
         [value for value in [contact.get("zone_focus", ""), contact.get("city_focus", ""), contact.get("country_focus", "")] if value]
     )
@@ -874,6 +922,7 @@ def _contact_profile_frame(contact: pd.Series) -> pd.DataFrame:
 
 
 def _criteria_match_frame(evaluation: dict[str, Any]) -> pd.DataFrame:
+    """Criteria match frame."""
     rows = []
     for key in ["sector", "geography", "ticket", "cap_rate"]:
         criterion = evaluation["criteria"][key]
@@ -889,6 +938,7 @@ def _criteria_match_frame(evaluation: dict[str, Any]) -> pd.DataFrame:
 
 
 def _generic_criteria_match_frame(snapshot: dict[str, Any]) -> pd.DataFrame:
+    """Generic criteria match frame."""
     return pd.DataFrame(
         [
             {
@@ -916,6 +966,7 @@ def _generic_criteria_match_frame(snapshot: dict[str, Any]) -> pd.DataFrame:
 
 
 def _negative_example_evaluation(context) -> dict[str, Any]:
+    """Negative example evaluation."""
     what_if = build_deal_input(
         {
             "mandate_name": "Normandy Hotel What-if",
@@ -939,6 +990,7 @@ def _negative_example_evaluation(context) -> dict[str, Any]:
 
 
 def _inject_theme_css() -> None:
+    """Inject theme css."""
     st.markdown(
         """
 <style>
@@ -1281,6 +1333,7 @@ div[data-baseweb="textarea"] > div:focus-within {
 
 
 def _render_shell() -> None:
+    """Render shell."""
     active = _current_screen()
     links = []
     for slug, label in SCREENS:
@@ -1298,6 +1351,7 @@ def _render_shell() -> None:
 
 
 def _render_dashboard_screen(context) -> None:
+    """Render dashboard screen."""
     active_mandates = max(1, len(context.staged_mandates))
     _section_intro(
         "Dashboard",
@@ -1361,6 +1415,7 @@ def _render_dashboard_screen(context) -> None:
 
 
 def _render_new_mandate_screen() -> None:
+    """Render new mandate screen."""
     _ensure_current_deal_state()
     _section_intro(
         "New Mandate",
@@ -1482,6 +1537,7 @@ def _render_new_mandate_screen() -> None:
 
 
 def _load_mandate_if_staged(deal_tuple: tuple) -> None:
+    """Load mandate if staged."""
     _deal, mandate_id = deal_tuple
     if mandate_id:
         payload = load_staged_mandate_into_working_set(mandate_id)
@@ -1489,6 +1545,7 @@ def _load_mandate_if_staged(deal_tuple: tuple) -> None:
 
 
 def _render_mandates_screen(context) -> None:
+    """Render mandates screen."""
     _ensure_current_deal_state()
     _section_intro(
         "Mandates",
@@ -1635,6 +1692,7 @@ def _render_mandates_screen(context) -> None:
 
 
 def _render_registry_admin(context) -> None:
+    """Render registry admin."""
     profile = context.scbsm_profile
     raw_metadata = load_profile_metadata() or profile
     with st.expander("Admin - structured profile controls", expanded=False):
@@ -1807,6 +1865,7 @@ def _render_registry_admin(context) -> None:
 
 
 def _render_investor_registry_screen(context) -> None:
+    """Render investor registry screen."""
     _section_intro(
         "Investors",
         "Browse the Alantra investor registry. Open a profile to see contact details, or validate an investor against an active mandate.",
@@ -1869,6 +1928,7 @@ def _render_investor_registry_screen(context) -> None:
 
 
 def _render_investor_validation_screen(context) -> None:
+    """Render investor validation screen."""
     _section_intro(
         "Investor Validation",
         "The decision engine first ranks investors against the live mandate, then opens a detailed validation view for the selected investor.",
@@ -2083,6 +2143,7 @@ def _render_investor_validation_screen(context) -> None:
 
 
 def _render_comparables_screen(context) -> None:
+    """Render comparables screen."""
     _section_intro(
         "Comparable Retrieval",
         "A transparent comp-retrieval screen that supports valuation judgment without claiming spurious point precision.",
@@ -2187,6 +2248,7 @@ def _render_comparables_screen(context) -> None:
 
 
 def _render_outreach_log_screen(context) -> None:
+    """Render outreach log screen."""
     _section_intro(
         "Outreach Log",
         "A lightweight interaction logger for repeated analyst use, backed by local SQLite history rather than an unstructured tracking file.",
@@ -2273,6 +2335,7 @@ def _render_outreach_log_screen(context) -> None:
 
 
 def main() -> None:
+    """Run the module entry point."""
     st.set_page_config(page_title="Alantra Deal Intelligence", layout="wide")
     bootstrap_outreach_environment()
     _inject_theme_css()

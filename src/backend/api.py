@@ -1,3 +1,4 @@
+"""Expose the outreach prototype through a small FastAPI interface."""
 from __future__ import annotations
 
 from datetime import date
@@ -10,6 +11,7 @@ from .outreach_db import load_staged_mandates, stage_mandate
 
 
 class StagedMandateIn(BaseModel):
+    """Represent the API payload used to stage a mandate for review."""
     mandate_name: str = Field(min_length=1)
     asset_type: str = Field(min_length=1)
     country: str = Field(min_length=1)
@@ -33,11 +35,13 @@ app = FastAPI(title="SCBSM Mandate Intake API", version="0.1.0")
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    """Health the current helper."""
     return {"status": "ok"}
 
 
 @app.get("/mandates/staging")
 def get_staged_mandates() -> list[dict[str, object]]:
+    """Return staged mandates."""
     frame = load_staged_mandates()
     if frame.empty:
         return []
@@ -46,6 +50,7 @@ def get_staged_mandates() -> list[dict[str, object]]:
 
 @app.post("/mandates/staging")
 def post_staged_mandate(payload: StagedMandateIn) -> dict[str, object]:
+    """Post staged mandate."""
     price_min = payload.price_min_eur_mn
     price_max = payload.price_max_eur_mn
     ticket = payload.ticket_eur_mn
@@ -84,6 +89,7 @@ def post_staged_mandate(payload: StagedMandateIn) -> dict[str, object]:
 
 
 def main() -> None:
+    """Run the module entry point."""
     uvicorn.run("src.backend.api:app", host="127.0.0.1", port=8000, reload=False)
 
 

@@ -1,3 +1,4 @@
+"""Scrape SCBSM filings and extract candidate asset tables."""
 from __future__ import annotations
 
 import argparse
@@ -69,6 +70,7 @@ ASSET_TABLE_GROUPS = (
 
 @dataclass(frozen=True)
 class DocumentSelection:
+    """Store the selection outcome for a scraped document."""
     listing_year: int
     report_title: str
     section: str
@@ -80,26 +82,31 @@ class DocumentSelection:
 
 
 def _normalise_space(value: str) -> str:
+    """Normalise space."""
     return re.sub(r"\s+", " ", value).strip()
 
 
 def _slugify(value: str) -> str:
+    """Slugify the current helper."""
     token = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return token[:100] or "document"
 
 
 def _fetch_bytes(url: str) -> bytes:
+    """Fetch bytes."""
     request = Request(url, headers={"User-Agent": USER_AGENT})
     with urlopen(request, timeout=60) as response:
         return response.read()
 
 
 def _write_bytes(path: Path, payload: bytes) -> None:
+    """Write bytes."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
 
 
 def _extract_previous_text(anchor: Tag) -> Iterable[str]:
+    """Extract previous text."""
     for element in anchor.previous_elements:
         if isinstance(element, NavigableString):
             text = _normalise_space(str(element))
@@ -110,6 +117,7 @@ def _extract_previous_text(anchor: Tag) -> Iterable[str]:
 
 
 def _find_previous_date(anchor: Tag) -> str:
+    """Find previous date."""
     for text in _extract_previous_text(anchor):
         match = DATE_PATTERN.search(text)
         if match:
@@ -118,6 +126,7 @@ def _find_previous_date(anchor: Tag) -> str:
 
 
 def _find_previous_heading(anchor: Tag) -> str:
+    """Find previous heading."""
     heading = anchor.find_previous(["h1", "h2", "h3"])
     if heading is None:
         return ""
@@ -125,6 +134,7 @@ def _find_previous_heading(anchor: Tag) -> str:
 
 
 def _infer_link_kind(link_text: str, url: str) -> str:
+    """Infer link kind."""
     text = link_text.strip().lower()
     if text in FILE_LINK_LABELS:
         return text
@@ -137,6 +147,7 @@ def _infer_link_kind(link_text: str, url: str) -> str:
 
 
 def scrape_listing(year: int) -> pd.DataFrame:
+    """Scrape listing."""
     source_page = LISTING_URL_TEMPLATE.format(year=year)
     html = _fetch_bytes(source_page)
     _write_bytes(LISTINGS_DIR / f"reports_{year}.html", html)
@@ -201,6 +212,7 @@ def scrape_listing(year: int) -> pd.DataFrame:
 
 
 def select_annual_documents(inventory: pd.DataFrame) -> pd.DataFrame:
+    """Select annual documents."""
     if inventory.empty:
         return inventory.copy()
 
@@ -220,6 +232,7 @@ def select_annual_documents(inventory: pd.DataFrame) -> pd.DataFrame:
 
 
 def _derive_filename(url: str) -> str:
+    """Derive filename."""
     name = Path(urlparse(url).path).name
     if name:
         return name
@@ -227,6 +240,7 @@ def _derive_filename(url: str) -> str:
 
 
 def download_documents(selected: pd.DataFrame, sleep_seconds: float) -> list[DocumentSelection]:
+    """Download documents."""
     downloads: list[DocumentSelection] = []
     for row in selected.itertuples(index=False):
         filename = _derive_filename(row.url)
@@ -253,6 +267,7 @@ def download_documents(selected: pd.DataFrame, sleep_seconds: float) -> list[Doc
 
 
 def _unpack_document(path: Path) -> list[Path]:
+    """Unpack document."""
     suffix = path.suffix.lower()
     if suffix in {".html", ".xhtml"}:
         return [path]
@@ -276,6 +291,7 @@ def _unpack_document(path: Path) -> list[Path]:
 
 
 def _table_to_frame(table: Tag) -> pd.DataFrame:
+    """Table to frame."""
     rows: list[list[str]] = []
     for tr in table.find_all("tr"):
         cells = [_normalise_space(" ".join(cell.stripped_strings)) for cell in tr.find_all(["th", "td"])]
@@ -292,11 +308,13 @@ def _table_to_frame(table: Tag) -> pd.DataFrame:
 
 
 def _matching_keywords(text: str, keywords: Iterable[str]) -> list[str]:
+    """Matching keywords."""
     lowered = text.lower()
     return [keyword for keyword in keywords if keyword in lowered]
 
 
 def _has_asset_table_signal(text: str) -> bool:
+    """Return whether the object has asset table signal."""
     lowered = text.lower()
     has_surface = any(token in lowered for token in ASSET_TABLE_GROUPS[0])
     has_metric = any(token in lowered for token in ASSET_TABLE_GROUPS[1])
@@ -305,6 +323,7 @@ def _has_asset_table_signal(text: str) -> bool:
 
 
 def extract_candidate_tables(downloads: list[DocumentSelection]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Extract candidate tables."""
     catalog_rows: list[dict[str, str | int | bool]] = []
     office_row_frames: list[pd.DataFrame] = []
 
@@ -377,6 +396,7 @@ def extract_candidate_tables(downloads: list[DocumentSelection]) -> tuple[pd.Dat
 
 
 def run(years: list[int], sleep_seconds: float) -> dict[str, int]:
+    """Run the current helper."""
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 
     inventories = [scrape_listing(year) for year in years]
@@ -428,6 +448,7 @@ def run(years: list[int], sleep_seconds: float) -> dict[str, int]:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the script."""
     parser = argparse.ArgumentParser(
         description="Scrape SCBSM annual report links and extract candidate valuation tables for Office-France analysis."
     )
@@ -448,6 +469,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run the module entry point."""
     args = parse_args()
     summary = run(years=args.years, sleep_seconds=args.sleep_seconds)
     print("SCBSM scraping proof of concept finished.")

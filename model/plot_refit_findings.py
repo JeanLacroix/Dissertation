@@ -1,3 +1,4 @@
+"""Plot refit-chain diagnostics and appendix-ready summary figures."""
 from __future__ import annotations
 
 import json
@@ -36,10 +37,12 @@ COLORS = {
 
 
 def _load_json(path: Path) -> dict[str, Any]:
+    """Load JSON."""
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _extract_refit_row(label: str, metrics: dict[str, Any]) -> dict[str, Any]:
+    """Extract refit row."""
     if "rolling_origin" in metrics:
         folds = metrics["rolling_origin"]["folds"]
         fold_mapes = [fold["model_metrics"]["mape_pct"] for fold in folds]
@@ -70,6 +73,7 @@ def _extract_refit_row(label: str, metrics: dict[str, Any]) -> dict[str, Any]:
 
 
 def _load_refit_summary() -> pd.DataFrame:
+    """Load refit summary."""
     rows = []
     for label, filename in SPEC_FILES:
         metrics = _load_json(REFIT_DIR / filename)
@@ -78,6 +82,7 @@ def _load_refit_summary() -> pd.DataFrame:
 
 
 def _plot_refit_path(summary: pd.DataFrame) -> Path:
+    """Plot refit path."""
     fig, ax = plt.subplots(figsize=(11, 6))
     x = np.arange(len(summary))
 
@@ -146,6 +151,7 @@ def _plot_refit_path(summary: pd.DataFrame) -> Path:
 
 
 def _plot_fold_heatmap(summary: pd.DataFrame) -> Path:
+    """Plot fold heatmap."""
     fold_labels = ["2023", "2024", "2025", "2026"]
     heatmap = np.array(summary["fold_mapes"].tolist(), dtype=float)
 
@@ -173,6 +179,7 @@ def _plot_fold_heatmap(summary: pd.DataFrame) -> Path:
 
 
 def _plot_e_f_dashboard(summary: pd.DataFrame) -> Path:
+    """Plot e f dashboard."""
     subset = summary.loc[summary["label"].isin(["E", "F"])].copy()
     metrics = [
         ("rolling_mean_mape_pct", "Rolling mean"),
@@ -213,6 +220,7 @@ def _plot_e_f_dashboard(summary: pd.DataFrame) -> Path:
 
 
 def _plot_f_country_scope() -> Path:
+    """Plot f country scope."""
     metrics = _load_json(REFIT_DIR / "refit_f_metrics.json")
     counts = pd.Series(metrics["office_country_counts_before_grouping"]).sort_values()
     retained = set(metrics["retained_country_groups"])
@@ -236,6 +244,7 @@ def _plot_f_country_scope() -> Path:
 
 
 def _plot_f_headline_single_deal() -> Path:
+    """Plot f headline single deal."""
     headline = pd.read_csv(REFIT_DIR / "refit_f_headline_top10_residuals.csv")
     row = headline.iloc[0]
     labels = ["Actual", "Model", "Naive baseline"]
@@ -273,6 +282,7 @@ def _plot_f_headline_single_deal() -> Path:
 
 
 def _plot_sample_size_tradeoff(summary: pd.DataFrame) -> Path:
+    """Plot sample size tradeoff."""
     fig, ax = plt.subplots(figsize=(9.5, 6))
     scatter = ax.scatter(
         summary["sample_size"],
@@ -310,6 +320,7 @@ def _plot_sample_size_tradeoff(summary: pd.DataFrame) -> Path:
 
 
 def main() -> None:
+    """Run the module entry point."""
     summary = _load_refit_summary()
     outputs = [
         _plot_refit_path(summary),

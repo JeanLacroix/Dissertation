@@ -1,3 +1,4 @@
+"""Command-line entry point for scoring a mandate against SCBSM."""
 from __future__ import annotations
 
 import argparse
@@ -12,10 +13,12 @@ from .paths import EXPORTS_DIR, ensure_outreach_dirs
 
 
 def _slugify(value: str) -> str:
+    """Slugify the current helper."""
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_") or "mandate"
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the script."""
     parser = argparse.ArgumentParser(
         description="Score a mandate against the SCBSM prototype and optionally export the result."
     )
@@ -33,6 +36,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run the module entry point."""
     args = parse_args()
     ensure_outreach_dirs()
     deal_input = build_deal_input(

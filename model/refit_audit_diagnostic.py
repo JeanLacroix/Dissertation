@@ -1,3 +1,4 @@
+"""Audit refit logic changes and compare their impact on model performance."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,6 +30,7 @@ AUDIT_DIR = ARTIFACTS_DIR / "refit_audit"
 
 
 def _rf_rolling_origin(model_frame: pd.DataFrame, apply_smearing: bool) -> dict[str, float]:
+    """Rf rolling origin."""
     fold_mapes: list[float] = []
     headline_mape: float | None = None
     for fold_name, train_years, test_year in ROLLING_FOLD_SPECS:
@@ -64,6 +66,7 @@ def _rf_rolling_origin(model_frame: pd.DataFrame, apply_smearing: bool) -> dict[
 
 
 def _ols_scenario(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], fold_aware_winsor: bool) -> dict[str, float]:
+    """Ols scenario."""
     result = evaluate_spec(dataset, pipeline_metadata, CHANGE_D_SPEC, fold_aware_winsor=fold_aware_winsor)
     rolling = result.rolling_origin
     rolling_fold_mapes = [float(fold["model_metrics"]["mape_pct"]) for fold in rolling["folds"]]
@@ -78,6 +81,7 @@ def _ols_scenario(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], fold
 
 
 def _build_scenarios(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], model_frame: pd.DataFrame) -> pd.DataFrame:
+    """Build scenarios."""
     scenarios = [
         ("baseline_current_code", False, False, "Current code: full-sample winsor, RF without smear"),
         ("A1_fold_aware_winsor", True, False, "A1: train-only winsor per fold (OLS), RF without smear"),
@@ -102,6 +106,7 @@ def _build_scenarios(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any], m
 
 
 def _plot_scenarios(results: pd.DataFrame, output_path: Path) -> None:
+    """Plot scenarios."""
     x = np.arange(len(results))
     width = 0.2
     fig, ax = plt.subplots(figsize=(11, 6))
@@ -130,6 +135,7 @@ def _plot_scenarios(results: pd.DataFrame, output_path: Path) -> None:
 
 
 def _write_readme(results: pd.DataFrame, output_path: Path) -> None:
+    """Write README."""
     baseline = results.loc[results["scenario"].eq("baseline_current_code")].iloc[0]
     a1 = results.loc[results["scenario"].eq("A1_fold_aware_winsor")].iloc[0]
     a2 = results.loc[results["scenario"].eq("A2_rf_smearing_only")].iloc[0]
@@ -175,6 +181,7 @@ def _write_readme(results: pd.DataFrame, output_path: Path) -> None:
 
 
 def main() -> None:
+    """Run the module entry point."""
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
     dataset, pipeline_metadata = build_training_frame()
     model_frame, _, _ = prepare_change_d_analysis_frame()

@@ -1,3 +1,4 @@
+"""Build a clean SCBSM asset dataset from extracted public tables."""
 from __future__ import annotations
 
 import argparse
@@ -23,6 +24,7 @@ ZONE_STRATEGY = {
 
 
 def _repair_text(value: Any) -> str:
+    """Repair text."""
     if pd.isna(value):
         return ""
 
@@ -39,6 +41,7 @@ def _repair_text(value: Any) -> str:
 
 
 def _parse_euro_number(value: Any) -> float | None:
+    """Parse euro number."""
     text = _repair_text(value)
     if not text:
         return None
@@ -61,6 +64,7 @@ def _parse_euro_number(value: Any) -> float | None:
 
 
 def _parse_percent(value: Any) -> float | None:
+    """Parse percent."""
     text = _repair_text(value).replace("%", "").replace(" ", "").replace(",", ".")
     if not text:
         return None
@@ -68,6 +72,7 @@ def _parse_percent(value: Any) -> float | None:
 
 
 def _parse_range(value: Any) -> tuple[float | None, float | None]:
+    """Parse range."""
     text = _repair_text(value)
     if not text:
         return None, None
@@ -83,6 +88,7 @@ def _parse_range(value: Any) -> tuple[float | None, float | None]:
 
 
 def _parse_date(value: Any) -> pd.Timestamp | pd.NaT:
+    """Parse date."""
     text = _repair_text(value)
     if not text:
         return pd.NaT
@@ -90,6 +96,7 @@ def _parse_date(value: Any) -> pd.Timestamp | pd.NaT:
 
 
 def _load_table(table_name: str) -> pd.DataFrame:
+    """Load table."""
     table_path = RAW_SCBSM_TABLES_DIR / table_name
     if not table_path.exists():
         raise FileNotFoundError(
@@ -100,6 +107,7 @@ def _load_table(table_name: str) -> pd.DataFrame:
 
 
 def _infer_asset_class(asset_name: str, zone: str) -> str:
+    """Infer asset class."""
     token = asset_name.lower()
     if "retail" in token or "franciades" in token:
         return "Retail"
@@ -115,6 +123,7 @@ def _infer_asset_class(asset_name: str, zone: str) -> str:
 
 
 def _load_asset_metadata() -> pd.DataFrame:
+    """Load asset metadata."""
     raw = _load_table("table_134.csv")
     frame = raw.rename(
         columns={
@@ -136,6 +145,7 @@ def _load_asset_metadata() -> pd.DataFrame:
 
 
 def _load_asset_values() -> pd.DataFrame:
+    """Load asset values."""
     raw = _load_table("table_137.csv")
     frame = raw.rename(
         columns={
@@ -157,6 +167,7 @@ def _load_asset_values() -> pd.DataFrame:
 
 
 def _load_zone_yields() -> pd.DataFrame:
+    """Load zone yields."""
     raw = _load_table("table_135.csv")
     frame = raw.rename(
         columns={
@@ -186,6 +197,7 @@ def _load_zone_yields() -> pd.DataFrame:
 
 
 def build_scbsm_asset_dataset(output_path: Path = SEED_ASSETS_PATH) -> pd.DataFrame:
+    """Build SCBSM asset dataset."""
     ensure_outreach_dirs()
 
     metadata = _load_asset_metadata()
@@ -251,6 +263,7 @@ def build_scbsm_asset_dataset(output_path: Path = SEED_ASSETS_PATH) -> pd.DataFr
 
 
 def _write_extraction_note(assets: pd.DataFrame) -> None:
+    """Write extraction note."""
     note = f"""# SCBSM Yield Extraction
 
 This dataset was built from the SCBSM 2024 universal registration document already scraped into `data/raw/scbsm/tables/scbsm-2024-06-30-fr/`.
@@ -294,6 +307,7 @@ The outreach algorithm uses `yield_mid_pct` as the comparable benchmark when ran
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the script."""
     parser = argparse.ArgumentParser(
         description="Build a clean SCBSM asset dataset with zone-level yield assumptions for the outreach application."
     )
@@ -307,6 +321,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run the module entry point."""
     args = parse_args()
     assets = build_scbsm_asset_dataset(output_path=args.output)
     print("SCBSM outreach asset dataset written.")

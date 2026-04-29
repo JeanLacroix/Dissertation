@@ -1,3 +1,4 @@
+"""Derive SCBSM profile signals and score candidate deals."""
 from __future__ import annotations
 
 import json
@@ -12,11 +13,13 @@ from .paths import SCBSM_PROFILE_PATH
 
 
 def _today_iso() -> str:
+    """Today iso."""
     return pd.Timestamp.today().date().isoformat()
 
 
 @dataclass(frozen=True)
 class DealInput:
+    """Represent the deal fields scored against the SCBSM profile."""
     mandate_name: str
     asset_type: str
     country: str
@@ -33,11 +36,13 @@ class DealInput:
     building_grade: str = ""
 
     def as_dict(self) -> dict[str, Any]:
+        """Return the object as a plain dictionary."""
         return asdict(self)
 
 
 @dataclass(frozen=True)
 class ScbsmProfile:
+    """Represent the derived target profile for the SCBSM prototype."""
     investor_id: str
     name: str
     firm: str
@@ -77,10 +82,12 @@ class ScbsmProfile:
     top_asset_class: str = ""
 
     def as_dict(self) -> dict[str, Any]:
+        """Return the object as a plain dictionary."""
         return asdict(self)
 
 
 def _parse_date(value: Any) -> date | None:
+    """Parse date."""
     if value is None or pd.isna(value) or str(value).strip() == "":
         return None
     parsed = pd.to_datetime(str(value).strip(), errors="coerce")
@@ -90,10 +97,12 @@ def _parse_date(value: Any) -> date | None:
 
 
 def _slug_text(value: Any) -> str:
+    """Slug text."""
     return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
 
 
 def _to_float(value: Any, fallback: float | None = None) -> float | None:
+    """To float."""
     if value is None or value == "":
         return fallback
     try:
@@ -108,6 +117,7 @@ def _to_float(value: Any, fallback: float | None = None) -> float | None:
 
 
 def _string_list(value: Any, fallback: list[str]) -> list[str]:
+    """String list."""
     if isinstance(value, list):
         items = [str(item).strip() for item in value if str(item).strip()]
         return items or fallback
@@ -118,6 +128,7 @@ def _string_list(value: Any, fallback: list[str]) -> list[str]:
 
 
 def _load_scbsm_profile_metadata() -> dict[str, Any]:
+    """Load SCBSM profile metadata."""
     if not SCBSM_PROFILE_PATH.exists():
         return {
             "investor_id": "scbsm",
@@ -153,6 +164,7 @@ def _load_scbsm_profile_metadata() -> dict[str, Any]:
 
 
 def compute_fund_lifecycle_status(profile: ScbsmProfile) -> dict[str, Any]:
+    """Compute fund lifecycle status."""
     investor_type = _slug_text(profile.investor_type)
     if "fund" not in investor_type:
         return {
@@ -188,6 +200,7 @@ def compute_fund_lifecycle_status(profile: ScbsmProfile) -> dict[str, Any]:
 
 
 def compute_resale_deadline_status(profile: ScbsmProfile) -> dict[str, Any]:
+    """Compute resale deadline status."""
     if not bool(profile.marchand_de_bien):
         return {
             "status": "Not applicable",
@@ -225,6 +238,7 @@ def compute_resale_deadline_status(profile: ScbsmProfile) -> dict[str, Any]:
 
 
 def derive_scbsm_profile(assets: pd.DataFrame) -> ScbsmProfile:
+    """Derive SCBSM profile."""
     metadata = _load_scbsm_profile_metadata()
     portfolio = assets.copy()
     portfolio["fair_value_eur_mn"] = pd.to_numeric(portfolio["fair_value_eur_mn"], errors="coerce").fillna(0.0)
@@ -294,6 +308,7 @@ def derive_scbsm_profile(assets: pd.DataFrame) -> ScbsmProfile:
 
 
 def _build_sector_criterion(deal: DealInput, profile: ScbsmProfile, same_asset_count: int) -> dict[str, Any]:
+    """Build sector criterion."""
     focus = profile.sector_focus or ["Office"]
     focus_tokens = {_slug_text(item) for item in focus}
     asset_token = _slug_text(deal.asset_type)
@@ -316,6 +331,7 @@ def _build_sector_criterion(deal: DealInput, profile: ScbsmProfile, same_asset_c
 
 
 def _build_geography_criterion(deal: DealInput, profile: ScbsmProfile, same_city_count: int, same_zone_count: int) -> dict[str, Any]:
+    """Build geography criterion."""
     city_token = _slug_text(deal.city)
     zone_token = _slug_text(deal.zone)
     focus_token = _slug_text(profile.geographic_focus)
@@ -352,6 +368,7 @@ def _build_geography_criterion(deal: DealInput, profile: ScbsmProfile, same_city
 
 
 def _build_ticket_criterion(deal: DealInput, profile: ScbsmProfile) -> dict[str, Any]:
+    """Build ticket criterion."""
     match = profile.ticket_min_eur_mn <= deal.ticket_eur_mn <= profile.ticket_max_eur_mn
     if match:
         reason = (
@@ -379,6 +396,7 @@ def _build_ticket_criterion(deal: DealInput, profile: ScbsmProfile) -> dict[str,
 
 
 def _build_cap_rate_criterion(deal: DealInput, profile: ScbsmProfile) -> dict[str, Any]:
+    """Build cap rate criterion."""
     if deal.cap_rate_pct is None:
         return {
             "label": "Cap rate compatibility",
@@ -429,6 +447,7 @@ def _build_cap_rate_criterion(deal: DealInput, profile: ScbsmProfile) -> dict[st
 
 
 def _build_lifecycle_criterion(profile: ScbsmProfile) -> dict[str, Any]:
+    """Build lifecycle criterion."""
     lifecycle = compute_fund_lifecycle_status(profile)
     status = lifecycle["status"]
     if status == "Likely seller":
@@ -450,6 +469,7 @@ def _build_lifecycle_criterion(profile: ScbsmProfile) -> dict[str, Any]:
 
 
 def _fit_label(score: float) -> str:
+    """Fit label."""
     if score >= 80:
         return "Strong match"
     if score >= 60:
@@ -458,6 +478,7 @@ def _fit_label(score: float) -> str:
 
 
 def _latest_scbsm_event(events: pd.DataFrame, investor_id: str) -> pd.Series | None:
+    """Return the latest SCBSM event."""
     if events.empty or "investor_id" not in events.columns:
         return None
     frame = events.loc[events["investor_id"].eq(investor_id)].copy()
@@ -476,6 +497,7 @@ def score_scbsm_for_deal(
     events: pd.DataFrame,
     profile: ScbsmProfile,
 ) -> dict[str, Any]:
+    """Score SCBSM for deal."""
     portfolio = assets.copy()
     portfolio["asset_class"] = portfolio["asset_class"].fillna("").astype(str)
     portfolio["zone"] = portfolio["zone"].fillna("").astype(str)

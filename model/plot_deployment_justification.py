@@ -1,3 +1,4 @@
+"""Create figures that justify deploying the dissertation tool as retrieval rather than valuation."""
 from __future__ import annotations
 
 import json
@@ -45,10 +46,12 @@ SPEC_FILES = [
 
 
 def _load_json(path: Path) -> dict[str, Any]:
+    """Load JSON."""
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _format_int(value: Any) -> str:
+    """Format int."""
     return f"{int(value):,}"
 
 
@@ -60,6 +63,7 @@ def _build_heatmap_counts(
     row_order: list[str],
     col_order: list[str],
 ) -> pd.DataFrame:
+    """Build heatmap counts."""
     return (
         frame.groupby([row_field, col_field], observed=True)
         .size()
@@ -76,6 +80,7 @@ def _draw_counts_heatmap(
     cmap_name: str,
     note: str | None = None,
 ) -> Any:
+    """Draw counts heatmap."""
     image = ax.imshow(counts.to_numpy(), cmap=green_cmap(cmap_name), aspect="auto")
     ax.set_xticks(np.arange(len(counts.columns)), counts.columns.tolist(), rotation=20, ha="right")
     ax.set_yticks(np.arange(len(counts.index)), counts.index.tolist())
@@ -102,6 +107,7 @@ def _draw_counts_heatmap(
 
 
 def _build_raw_preqin_heatmap_counts(raw: pd.DataFrame, metadata: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Build raw Preqin heatmap counts."""
     asset_order = metadata["asset_type_levels"]
     country_order = metadata["country_group_levels"]
 
@@ -133,6 +139,7 @@ def _build_raw_preqin_heatmap_counts(raw: pd.DataFrame, metadata: dict[str, Any]
 
 
 def _build_filtered_retrieval_heatmap_counts(comps: pd.DataFrame, metadata: dict[str, Any]) -> pd.DataFrame:
+    """Build filtered retrieval heatmap counts."""
     return _build_heatmap_counts(
         comps,
         row_field="asset_type",
@@ -143,6 +150,7 @@ def _build_filtered_retrieval_heatmap_counts(comps: pd.DataFrame, metadata: dict
 
 
 def _build_preqin_missing_value_summaries(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build Preqin missing value summaries."""
     full_summary = pd.DataFrame(
         {
             "column": raw.columns,
@@ -159,6 +167,7 @@ def _build_preqin_missing_value_summaries(raw: pd.DataFrame) -> tuple[pd.DataFra
 
 
 def _build_raw_country_density(raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Build raw country density."""
     frame = raw.loc[raw["ASSET COUNTRIES"].notna()].copy()
     frame["country"] = frame["ASSET COUNTRIES"].map(lambda value: canonicalise_country(str(value).split(",")[0]))
     counts = frame["country"].value_counts().rename_axis("country").reset_index(name="deal_count")
@@ -168,6 +177,7 @@ def _build_raw_country_density(raw: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 
 def _write_preqin_missing_value_outputs(raw: pd.DataFrame) -> list[Path]:
+    """Write Preqin missing value outputs."""
     full_summary, _ = _build_preqin_missing_value_summaries(raw)
 
     csv_path = OUTPUT_DIR / "preqin_missing_values_summary.csv"
@@ -176,6 +186,7 @@ def _write_preqin_missing_value_outputs(raw: pd.DataFrame) -> list[Path]:
 
 
 def _extract_refit_row(label: str, metrics: dict[str, Any]) -> dict[str, Any]:
+    """Extract refit row."""
     if "rolling_origin" in metrics:
         folds = metrics["rolling_origin"]["folds"]
         headline_fold = metrics["rolling_origin"]["headline_fold"]
@@ -197,6 +208,7 @@ def _extract_refit_row(label: str, metrics: dict[str, Any]) -> dict[str, Any]:
 
 
 def _load_refit_summary() -> pd.DataFrame:
+    """Load refit summary."""
     rows = []
     for label, filename in SPEC_FILES:
         rows.append(_extract_refit_row(label, _load_json(REFIT_DIR / filename)))
@@ -204,6 +216,7 @@ def _load_refit_summary() -> pd.DataFrame:
 
 
 def _plot_change_d_fold_comparison(change_d_metrics: dict[str, Any]) -> Path:
+    """Plot change d fold comparison."""
     folds = change_d_metrics["rolling_origin"]["folds"]
     years = [str(fold["test_year"]) for fold in folds]
     model_mapes = [fold["model_metrics"]["mape_pct"] for fold in folds]
@@ -251,6 +264,7 @@ def _plot_change_d_fold_comparison(change_d_metrics: dict[str, Any]) -> Path:
 
 
 def _plot_refit_tradeoff(summary: pd.DataFrame) -> Path:
+    """Plot refit tradeoff."""
     x = np.arange(len(summary))
     fig, ax = plt.subplots(figsize=(11, 6))
     ax.plot(x, summary["rolling_mean_mape_pct"], marker="o", linewidth=2.2, color=SECONDARY, label="Rolling-origin mean MAPE")
@@ -283,6 +297,7 @@ def _plot_refit_tradeoff(summary: pd.DataFrame) -> Path:
 
 
 def _plot_retrieval_universe_heatmap(comps: pd.DataFrame, metadata: dict[str, Any]) -> Path:
+    """Plot retrieval universe heatmap."""
     counts = _build_filtered_retrieval_heatmap_counts(comps, metadata)
 
     fig, ax = plt.subplots(figsize=(9.5, 6.5))
@@ -303,6 +318,7 @@ def _plot_retrieval_universe_heatmap(comps: pd.DataFrame, metadata: dict[str, An
 
 
 def _plot_raw_vs_retrieval_heatmaps(raw: pd.DataFrame, comps: pd.DataFrame, metadata: dict[str, Any]) -> Path:
+    """Plot raw vs retrieval heatmaps."""
     raw_counts, raw_stats = _build_raw_preqin_heatmap_counts(raw, metadata)
     retrieval_counts = _build_filtered_retrieval_heatmap_counts(comps, metadata)
 
@@ -345,6 +361,7 @@ def _plot_raw_vs_retrieval_heatmaps(raw: pd.DataFrame, comps: pd.DataFrame, meta
 
 
 def _plot_benchmark_cell_sizes(metadata: dict[str, Any]) -> Path:
+    """Plot benchmark cell sizes."""
     benchmark_cells = pd.DataFrame(metadata["reference_benchmark"]["cells"])
     benchmark_cells["cell"] = benchmark_cells["asset_type"] + " | " + benchmark_cells["country"]
     benchmark_cells = benchmark_cells.sort_values("sample_size", ascending=True).reset_index(drop=True)
@@ -369,6 +386,7 @@ def _plot_benchmark_cell_sizes(metadata: dict[str, Any]) -> Path:
 
 
 def _plot_raw_country_density_pre_cut(raw: pd.DataFrame) -> Path:
+    """Plot raw country density pre cut."""
     counts, missing_country_rows = _build_raw_country_density(raw)
 
     fig_height = max(8.0, len(counts) * 0.28)
@@ -411,6 +429,7 @@ def _plot_raw_country_density_pre_cut(raw: pd.DataFrame) -> Path:
 
 
 def main() -> None:
+    """Run the module entry point."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     metadata = _load_json(METADATA_PATH)
     comps = pd.read_parquet(COMPS_SAMPLE_PATH)

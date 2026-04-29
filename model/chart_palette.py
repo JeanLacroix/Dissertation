@@ -1,3 +1,4 @@
+"""Shared colour constants and colormaps for model visualisations."""
 from __future__ import annotations
 
 from matplotlib.colors import LinearSegmentedColormap
@@ -17,8 +18,10 @@ DARK = "#154734"
 
 
 def green_cmap(name: str = "company_green") -> LinearSegmentedColormap:
+    """Green cmap."""
     return LinearSegmentedColormap.from_list(name, [PALE, LIGHT, SECONDARY, PRIMARY, DARK])
 
 
 def green_soft_cmap(name: str = "company_green_soft") -> LinearSegmentedColormap:
+    """Green soft cmap."""
     return LinearSegmentedColormap.from_list(name, ["#F3F8F4", PALE, LIGHT, SECONDARY, PRIMARY])

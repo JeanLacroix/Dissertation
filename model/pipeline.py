@@ -1,3 +1,4 @@
+"""Load, filter, and enrich the Preqin modelling dataset."""
 from __future__ import annotations
 
 import re
@@ -91,11 +92,13 @@ MONTH_MAP = {
 
 
 def _normalise_token(value: Any) -> str:
+    """Normalise token."""
     text = str(value or "").strip().lower()
     return re.sub(r"[^a-z0-9]+", " ", text).strip()
 
 
 def _split_first_country(value: Any) -> str:
+    """Split first country."""
     text = str(value or "").strip()
     if not text:
         return ""
@@ -104,6 +107,7 @@ def _split_first_country(value: Any) -> str:
 
 
 def canonicalise_country(value: Any) -> str:
+    """Canonicalise country."""
     token = _normalise_token(_split_first_country(value))
     if token in COUNTRY_ALIASES:
         return COUNTRY_ALIASES[token]
@@ -111,12 +115,14 @@ def canonicalise_country(value: Any) -> str:
 
 
 def assign_country_group(country: str) -> str:
+    """Assign country group."""
     if country in {"United Kingdom", "Netherlands", "Spain", "Germany", "France"}:
         return country
     return "Other Europe"
 
 
 def load_preqin_transactions(path: Path | str = DEFAULT_PREQIN_PATH) -> pd.DataFrame:
+    """Load Preqin transactions."""
     df = pd.read_excel(path)
     missing = [column for column in PREQIN_REQUIRED_COLUMNS if column not in df.columns]
     if missing:
@@ -125,6 +131,7 @@ def load_preqin_transactions(path: Path | str = DEFAULT_PREQIN_PATH) -> pd.DataF
 
 
 def filter_preqin_transactions(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter Preqin transactions."""
     frame = df.copy()
     frame["DEAL DATE"] = pd.to_datetime(frame["DEAL DATE"], errors="coerce")
     frame["DEAL SIZE (EUR MN)"] = pd.to_numeric(frame["DEAL SIZE (EUR MN)"], errors="coerce")
@@ -173,11 +180,13 @@ def filter_preqin_transactions(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _extract_ecb_code(column_name: str) -> str | None:
+    """Extract ECB code."""
     match = re.search(r"HICP\.M\.([A-Z0-9]{2})\.", column_name)
     return match.group(1) if match else None
 
 
 def load_ecb_hicp_rates(path: Path | str = DEFAULT_ECB_HICP_PATH) -> pd.DataFrame:
+    """Load ECB HICP rates."""
     raw = pd.read_csv(path)
     raw["DATE"] = pd.to_datetime(raw["DATE"], errors="coerce")
 
@@ -211,6 +220,7 @@ def load_ecb_hicp_rates(path: Path | str = DEFAULT_ECB_HICP_PATH) -> pd.DataFram
 
 
 def load_uk_cpi_rates(path: Path | str = DEFAULT_UK_CPI_PATH) -> pd.DataFrame:
+    """Load UK cpi rates."""
     raw = pd.read_csv(path, header=None, names=["label", "rate_pct"])
     raw["label"] = raw["label"].astype(str).str.strip().str.replace('"', "", regex=False)
     raw["rate_pct"] = raw["rate_pct"].astype(str).str.strip().str.replace('"', "", regex=False)
@@ -240,6 +250,7 @@ def load_uk_cpi_rates(path: Path | str = DEFAULT_UK_CPI_PATH) -> pd.DataFrame:
 
 
 def _build_rebased_proxy_index(quarterly_rates: pd.DataFrame, anchor_quarter: str = "2021Q1") -> pd.Series:
+    """Build rebased proxy index."""
     rebased = pd.Series(index=quarterly_rates.index, dtype=float)
 
     # The source files are annual inflation-rate series rather than level indices.
@@ -278,6 +289,7 @@ def load_macro_index_frame(
     ecb_path: Path | str = DEFAULT_ECB_HICP_PATH,
     uk_path: Path | str = DEFAULT_UK_CPI_PATH,
 ) -> pd.DataFrame:
+    """Load macro index frame."""
     euro = load_ecb_hicp_rates(ecb_path)
     uk = load_uk_cpi_rates(uk_path)
     frame = pd.concat([euro, uk], ignore_index=True)
@@ -286,6 +298,7 @@ def load_macro_index_frame(
 
 
 def merge_macro_indices(transactions: pd.DataFrame, index_frame: pd.DataFrame) -> pd.DataFrame:
+    """Merge macro indices."""
     transaction_frame = transactions.copy()
     transaction_frame["_row_order"] = np.arange(len(transaction_frame))
     transaction_frame["_quarter_period"] = pd.PeriodIndex(transaction_frame["transaction_quarter"], freq="Q")
@@ -326,6 +339,7 @@ def merge_macro_indices(transactions: pd.DataFrame, index_frame: pd.DataFrame) -
 
 
 def _pick_best_column(columns: pd.Index, candidates: list[str]) -> str | None:
+    """Pick best column."""
     lookup = {str(column).strip().upper(): str(column) for column in columns}
     for candidate in candidates:
         if candidate in lookup:
@@ -338,6 +352,7 @@ def _pick_best_column(columns: pd.Index, candidates: list[str]) -> str | None:
 
 
 def load_capiq_year_built(path: Path | str = DEFAULT_CAPIQ_PATH) -> pd.DataFrame:
+    """Load Capital IQ year built."""
     raw = pd.read_excel(path, header=4, skiprows=[5, 6])
 
     name_col = _pick_best_column(raw.columns, ["PPTY_NAME", "PROPERTY NAME", "ASSET NAME", "INSTN_NAME", "NAME"])
@@ -367,6 +382,7 @@ def enrich_with_year_built(
     min_matches: int = 150,
     score_threshold: int = 85,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Enrich with year built."""
     frame = transactions.copy()
     frame["year_built"] = pd.Series(pd.NA, index=frame.index, dtype="Int64")
     frame["deal_name_norm"] = frame["DEAL NAME"].map(_normalise_token)
@@ -437,6 +453,7 @@ def build_training_frame(
     capiq_path: Path | str = DEFAULT_CAPIQ_PATH,
     min_year_built_matches: int = 150,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Build training frame."""
     raw = load_preqin_transactions(preqin_path)
     filtered = filter_preqin_transactions(raw)
     macro = load_macro_index_frame(ecb_path=ecb_path, uk_path=uk_path)

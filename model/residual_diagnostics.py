@@ -1,3 +1,4 @@
+"""Produce residual diagnostics for the retained Change D specification."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -17,12 +18,14 @@ DIAGNOSTICS_DIR = ARTIFACTS_DIR / "residual_diagnostics"
 
 
 def _fit_change_d_model():
+    """Fit change d model."""
     model_frame, _, _ = prepare_change_d_analysis_frame()
     model = _fit_ols(model_frame, CHANGE_D_FORMULA)
     return model_frame, model
 
 
 def _plot_residuals_vs_fitted(fitted: np.ndarray, residuals: np.ndarray) -> Path:
+    """Plot residuals vs fitted."""
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
     ax.scatter(fitted, residuals, alpha=0.6, color=PRIMARY, edgecolor="none")
     ax.axhline(0.0, color=DARK, linestyle="--", linewidth=1)
@@ -39,6 +42,7 @@ def _plot_residuals_vs_fitted(fitted: np.ndarray, residuals: np.ndarray) -> Path
 
 
 def _plot_residuals_vs_logsize(log_size: np.ndarray, residuals: np.ndarray) -> Path:
+    """Plot residuals vs logsize."""
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
     ax.scatter(log_size, residuals, alpha=0.6, color=SECONDARY, edgecolor="none")
     ax.axhline(0.0, color=DARK, linestyle="--", linewidth=1)
@@ -55,6 +59,7 @@ def _plot_residuals_vs_logsize(log_size: np.ndarray, residuals: np.ndarray) -> P
 
 
 def _plot_qq(residuals: np.ndarray) -> Path:
+    """Plot Q-Q."""
     fig = qqplot(residuals, line="45", fit=True)
     ax = fig.axes[0]
     for index, line in enumerate(ax.get_lines()):
@@ -76,6 +81,7 @@ def _plot_qq(residuals: np.ndarray) -> Path:
 
 
 def _plot_scale_location(fitted: np.ndarray, standardized_residuals: np.ndarray) -> Path:
+    """Plot scale location."""
     y_values = np.sqrt(np.abs(standardized_residuals))
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
     ax.scatter(fitted, y_values, alpha=0.6, color=ACCENT, edgecolor="none")
@@ -92,6 +98,7 @@ def _plot_scale_location(fitted: np.ndarray, standardized_residuals: np.ndarray)
 
 
 def _vif_table(exog: np.ndarray, exog_names: list[str]) -> pd.DataFrame:
+    """Vif table."""
     rows = []
     for idx, name in enumerate(exog_names):
         if name == "Intercept":
@@ -108,6 +115,7 @@ def _vif_table(exog: np.ndarray, exog_names: list[str]) -> pd.DataFrame:
 
 
 def _diagnostics_summary(model, vif_table: pd.DataFrame) -> pd.DataFrame:
+    """Diagnostics summary."""
     fitted = np.asarray(model.fittedvalues, dtype=float)
     residuals = np.asarray(model.resid, dtype=float)
     standardized_residuals = np.asarray(model.get_influence().resid_studentized_internal, dtype=float)
@@ -191,6 +199,7 @@ def _diagnostics_summary(model, vif_table: pd.DataFrame) -> pd.DataFrame:
 
 
 def _write_readme(summary: pd.DataFrame, vif_table: pd.DataFrame) -> Path:
+    """Write README."""
     bp_row = summary.loc[summary["test_name"].eq("Breusch-Pagan")].iloc[0]
     vif_row = summary.loc[summary["test_name"].eq("Variance inflation factor")].iloc[0]
     dw_row = summary.loc[summary["test_name"].eq("Durbin-Watson")].iloc[0]
@@ -226,6 +235,7 @@ Jarque-Bera tests the null that residuals are normally distributed. The statisti
 
 
 def main() -> None:
+    """Run the module entry point."""
     DIAGNOSTICS_DIR.mkdir(parents=True, exist_ok=True)
     model_frame, model = _fit_change_d_model()
     fitted = np.asarray(model.fittedvalues, dtype=float)

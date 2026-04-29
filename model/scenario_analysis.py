@@ -1,3 +1,4 @@
+"""Evaluate scenario-level retrieval diagnostics for the dissertation workflow."""
 from __future__ import annotations
 
 import hashlib
@@ -41,11 +42,13 @@ SCENARIOS = [
 
 
 def _training_sample_hash(model_frame: pd.DataFrame) -> str:
+    """Training sample hash."""
     hashed = pd.util.hash_pandas_object(model_frame, index=True).to_numpy(dtype=np.uint64)
     return hashlib.sha256(hashed.tobytes()).hexdigest()
 
 
 def _evaluate_scenario(model_frame: pd.DataFrame, scenario: dict[str, str]) -> dict[str, Any]:
+    """Evaluate scenario."""
     formula = scenario["formula"]
     rolling = run_rolling_origin_cv(model_frame, formula)
     random_5_fold = run_random_cv(model_frame, formula)
@@ -74,6 +77,7 @@ def _evaluate_scenario(model_frame: pd.DataFrame, scenario: dict[str, str]) -> d
 
 
 def _build_results(model_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build results."""
     rows = [_evaluate_scenario(model_frame, scenario) for scenario in SCENARIOS]
     results = pd.DataFrame(rows)
     full_coefficients = float(results.loc[results["scenario"].eq("A"), "n_coefficients"].iloc[0])
@@ -121,6 +125,7 @@ def _build_results(model_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
 
 
 def _plot_completeness_vs_error(results: pd.DataFrame) -> Path:
+    """Plot completeness vs error."""
     fig, ax = plt.subplots(figsize=(9.5, 6))
     x = results["completeness_ratio"].to_numpy(dtype=float)
 
@@ -152,6 +157,7 @@ def _plot_completeness_vs_error(results: pd.DataFrame) -> Path:
 
 
 def _plot_per_scenario_fold_mape(results: pd.DataFrame) -> Path:
+    """Plot per scenario fold MAPE."""
     fig, ax = plt.subplots(figsize=(10.5, 6))
     x = np.arange(len(results))
     width = 0.18
@@ -185,6 +191,7 @@ def _plot_per_scenario_fold_mape(results: pd.DataFrame) -> Path:
 
 
 def _write_manifest(model_frame: pd.DataFrame, pipeline_metadata: dict[str, Any], prep_metadata: dict[str, Any]) -> Path:
+    """Write manifest."""
     manifest = {
         "inputs_used": [
             "data/raw/Preqin_RealEstate_Deals-13_04_2026.xlsx",
@@ -206,6 +213,7 @@ def _write_manifest(model_frame: pd.DataFrame, pipeline_metadata: dict[str, Any]
 
 
 def main() -> None:
+    """Run the module entry point."""
     SCENARIO_DIR.mkdir(parents=True, exist_ok=True)
     model_frame, pipeline_metadata, prep_metadata = prepare_change_d_analysis_frame()
     results, per_fold = _build_results(model_frame)

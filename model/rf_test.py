@@ -1,3 +1,4 @@
+"""Compare a random-forest benchmark against the retained hedonic model."""
 from __future__ import annotations
 
 import json
@@ -28,6 +29,7 @@ RF_DIR = ARTIFACTS_DIR / "rf_test"
 
 
 def _prepare_rf_matrices(train_frame: pd.DataFrame, test_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Prepare random-forest matrices."""
     categorical_columns = ["primary_asset_type", "country_group", "model_year_effect"]
     numeric_columns = ["log_total_size_sqm"]
 
@@ -46,6 +48,7 @@ def _prepare_rf_matrices(train_frame: pd.DataFrame, test_frame: pd.DataFrame) ->
 
 
 def _rolling_origin_rf_results(model_frame: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, float], pd.DataFrame]:
+    """Rolling origin random-forest results."""
     fold_rows: list[dict[str, Any]] = []
 
     for fold_name, train_years, test_year in ROLLING_FOLD_SPECS:
@@ -113,6 +116,7 @@ def _rolling_origin_rf_results(model_frame: pd.DataFrame) -> tuple[pd.DataFrame,
 
 
 def _fit_full_rf(model_frame: pd.DataFrame) -> tuple[RandomForestRegressor, pd.DataFrame]:
+    """Fit full random-forest."""
     x_full, _ = _prepare_rf_matrices(model_frame, model_frame.iloc[0:0].copy())
     rf_model = RandomForestRegressor(
         n_estimators=500,
@@ -132,6 +136,7 @@ def _fit_full_rf(model_frame: pd.DataFrame) -> tuple[RandomForestRegressor, pd.D
 
 
 def _plot_fold_comparison(fold_results: pd.DataFrame) -> Path:
+    """Plot fold comparison."""
     x = np.arange(len(fold_results))
     width = 0.24
     fig, ax = plt.subplots(figsize=(10.5, 6))
@@ -163,6 +168,7 @@ def _plot_fold_comparison(fold_results: pd.DataFrame) -> Path:
 
 
 def _write_readme(comparison: pd.DataFrame) -> Path:
+    """Write README."""
     rf_row = comparison.loc[comparison["model"].eq("Random forest")].iloc[0]
     hedonic_row = comparison.loc[comparison["model"].eq("Change D hedonic")].iloc[0]
     baseline_row = comparison.loc[comparison["model"].eq("Naive baseline")].iloc[0]
@@ -184,6 +190,7 @@ def _write_readme(comparison: pd.DataFrame) -> Path:
 
 
 def main() -> None:
+    """Run the module entry point."""
     RF_DIR.mkdir(parents=True, exist_ok=True)
     model_frame, _, _ = prepare_change_d_analysis_frame()
 

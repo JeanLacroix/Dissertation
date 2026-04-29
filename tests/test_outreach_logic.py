@@ -1,3 +1,4 @@
+"""Regression tests for the SCBSM outreach scoring and persistence flow."""
 from __future__ import annotations
 
 from dataclasses import replace
@@ -17,10 +18,12 @@ from src.backend.paths import SEED_ASSETS_PATH
 
 
 def _load_assets_frame() -> pd.DataFrame:
+    """Load assets frame."""
     return pd.read_csv(SEED_ASSETS_PATH)
 
 
 def _empty_events_frame() -> pd.DataFrame:
+    """Return an empty events frame."""
     return pd.DataFrame(
         columns=[
             "investor_id",
@@ -34,7 +37,9 @@ def _empty_events_frame() -> pd.DataFrame:
 
 
 class OutreachLogicTests(TestCase):
+    """Exercise the SCBSM outreach workflow on stable regression cases."""
     def test_build_deal_input_swaps_price_range_and_derives_ticket(self) -> None:
+        """Test build deal input swaps price range and derives ticket."""
         deal = build_deal_input(
             {
                 "mandate_name": " Reversed Range ",
@@ -58,6 +63,7 @@ class OutreachLogicTests(TestCase):
         self.assertIsNone(deal.cap_rate_pct)
 
     def test_validate_profile_payload_flags_missing_mandatory_fields(self) -> None:
+        """Test validate profile payload flags missing mandatory fields."""
         payload = {
             "name": "",
             "firm": "SCBSM",
@@ -81,6 +87,7 @@ class OutreachLogicTests(TestCase):
         self.assertNotIn("firm", missing)
 
     def test_log_touchpoint_sets_backdated_flag_for_old_entries(self) -> None:
+        """Test log touchpoint sets backdated flag for old entries."""
         deal = build_deal_input()
         backdated_date = (pd.Timestamp.today().normalize() - pd.Timedelta(days=91)).date().isoformat()
 
@@ -99,6 +106,7 @@ class OutreachLogicTests(TestCase):
         self.assertEqual(mock_append.call_args.kwargs["touchpoint_type"], "teaser_sent")
 
     def test_create_mock_mandate_stages_and_marks_loaded(self) -> None:
+        """Test create mock mandate stages and marks loaded."""
         payload = {
             "mandate_name": "Mock mandate",
             "asset_type": "Office",
@@ -122,6 +130,7 @@ class OutreachLogicTests(TestCase):
         mock_mark_loaded.assert_called_once_with("mdt_test")
 
     def test_score_scbsm_for_default_deal_is_strong_match(self) -> None:
+        """Test score SCBSM for default deal is strong match."""
         assets = _load_assets_frame()
         profile = derive_scbsm_profile(assets)
         result = score_scbsm_for_deal(
@@ -139,6 +148,7 @@ class OutreachLogicTests(TestCase):
         self.assertTrue(result["yield_accretive"])
 
     def test_score_scbsm_for_clear_mismatch_flags_off_target(self) -> None:
+        """Test score SCBSM for clear mismatch flags off target."""
         assets = _load_assets_frame()
         profile = derive_scbsm_profile(assets)
         mismatch_deal = build_deal_input(
@@ -169,6 +179,7 @@ class OutreachLogicTests(TestCase):
         self.assertTrue(any("below SCBSM minimum" in warning for warning in result["warning_messages"]))
 
     def test_fund_lifecycle_status_flags_likely_seller_for_short_remaining_life(self) -> None:
+        """Test fund lifecycle status flags likely seller for short remaining life."""
         assets = _load_assets_frame()
         profile = derive_scbsm_profile(assets)
         current_year = pd.Timestamp.today().year
@@ -186,6 +197,7 @@ class OutreachLogicTests(TestCase):
         self.assertLessEqual(status["years_remaining"], 2.0)
 
     def test_resale_deadline_status_approaching_when_within_18_months(self) -> None:
+        """Test resale deadline status approaching when within 18 months."""
         assets = _load_assets_frame()
         profile = derive_scbsm_profile(assets)
         acquisition_date = (pd.Timestamp.today() - pd.DateOffset(years=4)).date().isoformat()

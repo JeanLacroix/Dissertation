@@ -1,3 +1,4 @@
+"""Manage the local SQLite store used by the outreach prototype."""
 from __future__ import annotations
 
 import json
@@ -64,6 +65,7 @@ PROFILE_EDIT_COLUMNS = [
 
 
 def get_connection(db_path: Path = OUTREACH_DB_PATH) -> sqlite3.Connection:
+    """Return connection."""
     ensure_outreach_dirs()
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
@@ -71,11 +73,13 @@ def get_connection(db_path: Path = OUTREACH_DB_PATH) -> sqlite3.Connection:
 
 
 def _table_exists(connection: sqlite3.Connection, table_name: str) -> bool:
+    """Table exists."""
     query = f"SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='{table_name}')"
     return bool(connection.execute(query).fetchone()[0])
 
 
 def _table_row_count(connection: sqlite3.Connection, table_name: str) -> int:
+    """Table row count."""
     try:
         return int(connection.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0])
     except sqlite3.OperationalError:
@@ -83,6 +87,7 @@ def _table_row_count(connection: sqlite3.Connection, table_name: str) -> int:
 
 
 def _table_columns(connection: sqlite3.Connection, table_name: str) -> list[str]:
+    """Table columns."""
     try:
         rows = connection.execute(f"PRAGMA table_info({table_name})").fetchall()
     except sqlite3.OperationalError:
@@ -91,16 +96,19 @@ def _table_columns(connection: sqlite3.Connection, table_name: str) -> list[str]
 
 
 def _seed_table_matches(connection: sqlite3.Connection, table_name: str, frame: pd.DataFrame) -> bool:
+    """Seed table matches."""
     return _table_columns(connection, table_name) == frame.columns.tolist()
 
 
 def _load_seed_assets() -> pd.DataFrame:
+    """Load seed assets."""
     if not SEED_ASSETS_PATH.exists():
         build_scbsm_asset_dataset()
     return pd.read_csv(SEED_ASSETS_PATH)
 
 
 def _load_seed_contacts() -> pd.DataFrame:
+    """Load seed contacts."""
     if not SEED_CONTACTS_PATH.exists():
         raise FileNotFoundError(f"Missing seed contacts file: {SEED_CONTACTS_PATH}")
     frame = pd.read_csv(SEED_CONTACTS_PATH)
@@ -114,10 +122,12 @@ def _load_seed_contacts() -> pd.DataFrame:
 
 
 def _empty_outreach_events() -> pd.DataFrame:
+    """Return an empty outreach events."""
     return pd.DataFrame(columns=OUTREACH_EVENT_COLUMNS)
 
 
 def _load_seed_events() -> pd.DataFrame:
+    """Load seed events."""
     if not SEED_EVENTS_PATH.exists():
         return _empty_outreach_events()
     frame = pd.read_csv(SEED_EVENTS_PATH)
@@ -128,10 +138,12 @@ def _load_seed_events() -> pd.DataFrame:
 
 
 def _empty_staged_mandates() -> pd.DataFrame:
+    """Return an empty staged mandates."""
     return pd.DataFrame(columns=STAGED_MANDATE_COLUMNS)
 
 
 def _empty_profile_edits() -> pd.DataFrame:
+    """Return an empty profile edits."""
     return pd.DataFrame(columns=PROFILE_EDIT_COLUMNS)
 
 
@@ -143,6 +155,7 @@ def _should_replace_seed_table(
     force_reseed: bool,
     mutable: bool,
 ) -> bool:
+    """Return whether the workflow should replace seed table."""
     if force_reseed:
         return True
     if not _table_exists(connection, table_name):
@@ -155,6 +168,7 @@ def _should_replace_seed_table(
 
 
 def initialize_outreach_db(force_reseed: bool = False) -> Path:
+    """Initialize outreach database."""
     ensure_outreach_dirs()
     assets = _load_seed_assets()
     contacts = _load_seed_contacts()
@@ -183,18 +197,21 @@ def initialize_outreach_db(force_reseed: bool = False) -> Path:
 
 
 def load_assets() -> pd.DataFrame:
+    """Load assets."""
     initialize_outreach_db()
     with get_connection() as connection:
         return pd.read_sql_query("SELECT * FROM assets ORDER BY fair_value_eur DESC, asset_number ASC", connection)
 
 
 def load_contacts() -> pd.DataFrame:
+    """Load contacts."""
     initialize_outreach_db()
     with get_connection() as connection:
         return pd.read_sql_query("SELECT * FROM contacts ORDER BY company ASC, full_name ASC", connection)
 
 
 def load_outreach_events() -> pd.DataFrame:
+    """Load outreach events."""
     initialize_outreach_db()
     with get_connection() as connection:
         frame = pd.read_sql_query(
@@ -211,6 +228,7 @@ def load_outreach_events() -> pd.DataFrame:
 
 
 def load_staged_mandates() -> pd.DataFrame:
+    """Load staged mandates."""
     initialize_outreach_db()
     with get_connection() as connection:
         frame = pd.read_sql_query(
@@ -224,6 +242,7 @@ def load_staged_mandates() -> pd.DataFrame:
 
 
 def load_profile_edits(investor_id: str = "scbsm") -> pd.DataFrame:
+    """Load profile edits."""
     initialize_outreach_db()
     with get_connection() as connection:
         frame = pd.read_sql_query(
@@ -253,6 +272,7 @@ def append_outreach_event(
     created_at_utc: str,
     backdated_flag: bool,
 ) -> str:
+    """Append outreach event."""
     initialize_outreach_db()
     event_id = f"evt_{uuid.uuid4().hex[:10]}"
     payload = {
@@ -287,6 +307,7 @@ def append_profile_edit(
     changed_fields: list[str],
     note: str,
 ) -> str:
+    """Append profile edit."""
     initialize_outreach_db()
     edit_id = f"ped_{uuid.uuid4().hex[:10]}"
     payload = {
@@ -321,6 +342,7 @@ def stage_mandate(
     source: str | None = None,
     notes: str | None = None,
 ) -> str:
+    """Stage mandate."""
     initialize_outreach_db()
     staged_mandate_id = f"mdt_{uuid.uuid4().hex[:10]}"
     payload = {
@@ -350,6 +372,7 @@ def stage_mandate(
 
 
 def mark_staged_mandate_loaded(staged_mandate_id: str) -> None:
+    """Mark staged mandate loaded."""
     initialize_outreach_db()
     with get_connection() as connection:
         connection.execute(
@@ -360,12 +383,14 @@ def mark_staged_mandate_loaded(staged_mandate_id: str) -> None:
 
 
 def export_ranked_contacts(frame: pd.DataFrame, output_path: Path) -> Path:
+    """Export ranked contacts."""
     ensure_outreach_dirs()
     frame.to_csv(output_path, index=False)
     return output_path
 
 
 def refresh_seed_assets() -> Path:
+    """Refresh seed assets."""
     build_scbsm_asset_dataset()
     initialize_outreach_db(force_reseed=True)
     return SEED_ASSETS_PATH

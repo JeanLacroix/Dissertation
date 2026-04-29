@@ -1,9 +1,11 @@
+"""Run the main dissertation diagnostic scripts in sequence."""
 from __future__ import annotations
 
 from . import residual_diagnostics, rf_test, scenario_analysis
 
 
 def main() -> None:
+    """Run the module entry point."""
     print("Running scenario analysis...")
     scenario_analysis.main()
     print()

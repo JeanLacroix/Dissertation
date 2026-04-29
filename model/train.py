@@ -1,3 +1,4 @@
+"""Train, evaluate, and export the retained Change D retrieval artefacts."""
 from __future__ import annotations
 
 import json
@@ -49,18 +50,21 @@ PRICE_PER_SQM_BUCKET_BINS = [0, 1_000, 2_000, 3_000, 5_000, 7_500, 10_000, 15_00
 
 @dataclass(frozen=True)
 class TrainingOutputs:
+    """Collect the exported artefacts and metadata from model training."""
     model: Any
     model_frame: pd.DataFrame
     metadata: dict[str, Any]
 
 
 def _build_formula(include_year_built: bool) -> str:
+    """Build formula."""
     if include_year_built:
         return f"{BASE_FORMULA} + year_built"
     return BASE_FORMULA
 
 
 def _prepare_model_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Prepare model frame."""
     frame = dataset.copy()
     frame = frame.loc[np.isfinite(frame["log_deal_size_eur_mn"]) & np.isfinite(frame["log_total_size_sqm"])].copy()
 
@@ -83,10 +87,12 @@ def _prepare_model_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any
 
 
 def _fit_ols(train_frame: pd.DataFrame, formula: str):
+    """Fit OLS."""
     return smf.ols(formula=formula, data=train_frame).fit()
 
 
 def _map_prediction_year_effect(year_value: int, available_years: list[int]) -> int:
+    """Map prediction year effect."""
     capped_year = min(int(year_value), YEAR_FE_CAP)
     eligible_years = [year for year in available_years if year <= capped_year]
     if eligible_years:
@@ -99,6 +105,7 @@ def _prepare_formula_frames(
     test_frame: pd.DataFrame,
     formula: str,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Prepare formula frames."""
     train = train_frame.copy()
     test = test_frame.copy()
     if "C(model_year_effect)" in formula:
@@ -113,11 +120,13 @@ def _prepare_formula_frames(
 
 
 def _predict_deal_size_eur_mn(model, frame: pd.DataFrame) -> np.ndarray:
+    """Predict deal size EUR mn."""
     log_predictions = model.predict(frame)
     return np.exp(np.asarray(log_predictions, dtype=float))
 
 
 def _evaluate_predictions(actual: pd.Series | np.ndarray, predicted: pd.Series | np.ndarray) -> dict[str, float]:
+    """Evaluate predictions."""
     actual_array = np.asarray(actual, dtype=float)
     predicted_array = np.asarray(predicted, dtype=float)
     percentage_errors = np.abs((actual_array - predicted_array) / actual_array)
@@ -129,6 +138,7 @@ def _evaluate_predictions(actual: pd.Series | np.ndarray, predicted: pd.Series |
 
 
 def _baseline_predict(train_frame: pd.DataFrame, test_frame: pd.DataFrame) -> np.ndarray:
+    """Baseline predict."""
     train_copy = train_frame.copy()
     train_copy["asset_type_key"] = train_copy["primary_asset_type"].astype(str)
     train_copy["country_key"] = train_copy["country_group"].astype(str)
@@ -155,6 +165,7 @@ def _baseline_predict(train_frame: pd.DataFrame, test_frame: pd.DataFrame) -> np
 
 
 def _compute_lift(model_metrics: dict[str, float], baseline_metrics: dict[str, float]) -> dict[str, float]:
+    """Compute lift."""
     return {
         "mape_reduction_pct": float(
             ((baseline_metrics["mape_pct"] - model_metrics["mape_pct"]) / baseline_metrics["mape_pct"]) * 100.0
@@ -166,6 +177,7 @@ def _compute_lift(model_metrics: dict[str, float], baseline_metrics: dict[str, f
 
 
 def _run_fold(train_frame: pd.DataFrame, test_frame: pd.DataFrame, formula: str, fold_name: str) -> dict[str, Any]:
+    """Run fold."""
     prepared_train, prepared_test = _prepare_formula_frames(train_frame, test_frame, formula)
     model = _fit_ols(prepared_train, formula)
     model_predictions = _predict_deal_size_eur_mn(model, prepared_test)
@@ -186,6 +198,7 @@ def _run_fold(train_frame: pd.DataFrame, test_frame: pd.DataFrame, formula: str,
 
 
 def run_rolling_origin_cv(model_frame: pd.DataFrame, formula: str) -> dict[str, Any]:
+    """Run rolling origin cross-validation."""
     folds: list[dict[str, Any]] = []
     for fold_name, train_years, test_year in ROLLING_FOLD_SPECS:
         train_mask = model_frame["transaction_year"].isin(train_years)
@@ -216,6 +229,7 @@ def run_rolling_origin_cv(model_frame: pd.DataFrame, formula: str) -> dict[str, 
 
 
 def run_random_cv(model_frame: pd.DataFrame, formula: str, random_state: int = RANDOM_SEED) -> dict[str, Any]:
+    """Run random cross-validation."""
     splitter = KFold(n_splits=5, shuffle=True, random_state=random_state)
     folds: list[dict[str, Any]] = []
 
@@ -242,6 +256,7 @@ def run_random_cv(model_frame: pd.DataFrame, formula: str, random_state: int = R
 
 
 def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
+    """Format bucket labels."""
     labels: list[str] = []
     for lower, upper in zip(bins[:-1], bins[1:]):
         if np.isinf(upper):
@@ -252,11 +267,13 @@ def _format_bucket_labels(bins: list[float], unit: str) -> list[str]:
 
 
 def _format_year_bucket(series: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Format year bucket."""
     year_order = series.astype("Int64")
     return year_order.astype(str), year_order
 
 
 def _build_bucket_series(series: pd.Series, bins: list[float], unit: str) -> tuple[pd.Series, pd.Series]:
+    """Build bucket series."""
     labels = _format_bucket_labels(bins, unit)
     bucketed = pd.cut(
         series,
@@ -271,6 +288,7 @@ def _build_bucket_series(series: pd.Series, bins: list[float], unit: str) -> tup
 
 
 def _bucket_midpoints(bins: list[float]) -> list[float]:
+    """Bucket midpoints."""
     midpoints: list[float] = []
     for lower, upper in zip(bins[:-1], bins[1:]):
         if np.isinf(upper):
@@ -281,6 +299,7 @@ def _bucket_midpoints(bins: list[float]) -> list[float]:
 
 
 def build_anonymised_comps_sample(model_frame: pd.DataFrame) -> pd.DataFrame:
+    """Build anonymised comparables sample."""
     year_bucket, year_bucket_order = _format_year_bucket(model_frame["transaction_year"])
     size_bucket, size_bucket_order = _build_bucket_series(model_frame["TOTAL SIZE (SQ. M.)"], SIZE_BUCKET_BINS, "sqm")
     price_bucket, price_bucket_order = _build_bucket_series(
@@ -316,18 +335,21 @@ def build_anonymised_comps_sample(model_frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _other_europe_composition(model_frame: pd.DataFrame) -> dict[str, int]:
+    """Other europe composition."""
     other_europe = model_frame.loc[model_frame["country_group"].astype(str).eq("Other Europe"), "country"]
     counts = other_europe.value_counts().sort_values(ascending=False)
     return {str(country): int(count) for country, count in counts.items()}
 
 
 def _build_bootstrap_residual_pool(model, n_samples: int = BOOTSTRAP_RESIDUAL_COUNT) -> np.ndarray:
+    """Build bootstrap residual pool."""
     rng = np.random.default_rng(RANDOM_SEED)
     residuals = np.asarray(model.resid, dtype=float)
     return rng.choice(residuals, size=n_samples, replace=True)
 
 
 def _cross_validation_comparison(rolling_cv: dict[str, Any], random_cv: dict[str, Any]) -> dict[str, Any]:
+    """Cross validation comparison."""
     mape_gap = abs(rolling_cv["mean_mape_pct"] - random_cv["mean_mape_pct"])
     return {
         "absolute_mean_mape_gap_pct_points": float(mape_gap),
@@ -337,6 +359,7 @@ def _cross_validation_comparison(rolling_cv: dict[str, Any], random_cv: dict[str
 
 
 def _limitations(include_year_built: bool) -> list[str]:
+    """Limitations the current helper."""
     base_limitations = [
         "United Kingdom transactions constitute 58 percent of the training sample, so the fitted coefficients are UK-dominated and country fixed effects mainly shift levels for smaller markets.",
         "Size elasticity is assumed homogeneous across countries and asset types; no interaction specification was tested in this version.",
@@ -356,6 +379,7 @@ def _limitations(include_year_built: bool) -> list[str]:
 
 
 def _prepare_change_d_deployment_frame(dataset: pd.DataFrame, pipeline_metadata: dict[str, Any]) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Prepare change d deployment frame."""
     frame = dataset.copy()
     frame = frame.loc[~frame["primary_asset_type"].astype(str).isin(["Land", "Niche"])].copy()
 
@@ -398,6 +422,7 @@ def _prepare_change_d_deployment_frame(dataset: pd.DataFrame, pipeline_metadata:
 
 
 def _load_change_d_metrics() -> dict[str, Any]:
+    """Load change d metrics."""
     if not CHANGE_D_METRICS_PATH.exists():
         raise FileNotFoundError(
             "The change D metrics artifact is missing. Run the stage-two refit diagnostics before exporting deployment artifacts."
@@ -407,6 +432,7 @@ def _load_change_d_metrics() -> dict[str, Any]:
 
 
 def _build_reference_benchmarks(model_frame: pd.DataFrame) -> dict[str, Any]:
+    """Build reference benchmarks."""
     benchmark_cells = (
         model_frame.assign(
             asset_type=model_frame["primary_asset_type"].astype(str),
@@ -437,6 +463,7 @@ def _build_reference_benchmarks(model_frame: pd.DataFrame) -> dict[str, Any]:
 
 
 def _build_methodology_note(change_d_metrics: dict[str, Any]) -> str:
+    """Build methodology note."""
     rolling_folds = change_d_metrics["rolling_origin"]["folds"]
     fold_bits = [
         f"{fold['test_year']}: {fold['model_metrics']['mape_pct']:.1f}%"
@@ -458,6 +485,7 @@ def _build_retrieval_metadata(
     prep_metadata: dict[str, Any],
     change_d_metrics: dict[str, Any],
 ) -> dict[str, Any]:
+    """Build retrieval metadata."""
     reference_benchmarks = _build_reference_benchmarks(model_frame)
     rolling_origin = change_d_metrics["rolling_origin"]
     random_5_fold = change_d_metrics["random_5_fold"]
@@ -554,6 +582,7 @@ def _build_retrieval_metadata(
 
 
 def _export_retrieval_artifacts(comps_sample: pd.DataFrame, metadata: dict[str, Any]) -> None:
+    """Export retrieval artifacts."""
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     comps_sample.to_parquet(COMPS_SAMPLE_PATH, index=False)
     with METADATA_PATH.open("w", encoding="utf-8") as handle:
@@ -563,6 +592,7 @@ def _export_retrieval_artifacts(comps_sample: pd.DataFrame, metadata: dict[str, 
 
 
 def prepare_change_d_analysis_frame() -> tuple[pd.DataFrame, dict[str, Any], dict[str, Any]]:
+    """Prepare change d analysis frame."""
     dataset, pipeline_metadata = build_training_frame()
     model_frame, prep_metadata = _prepare_change_d_deployment_frame(dataset, pipeline_metadata)
     return model_frame, pipeline_metadata, prep_metadata
@@ -577,6 +607,7 @@ def _build_metadata(
     rolling_cv: dict[str, Any],
     random_cv: dict[str, Any],
 ) -> dict[str, Any]:
+    """Build metadata."""
     return {
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "model_formula": formula,
@@ -633,6 +664,7 @@ def _export_artifacts(
     comps_sample: pd.DataFrame,
     metadata: dict[str, Any],
 ) -> None:
+    """Export artifacts."""
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     with MODEL_PATH.open("wb") as handle:
         pickle.dump(final_model, handle)
@@ -643,6 +675,7 @@ def _export_artifacts(
 
 
 def train_and_export_artifacts() -> TrainingOutputs:
+    """Train and export artifacts."""
     dataset, pipeline_metadata = build_training_frame()
     model_frame, prep_metadata = _prepare_change_d_deployment_frame(dataset, pipeline_metadata)
     change_d_metrics = _load_change_d_metrics()
@@ -658,6 +691,7 @@ def train_and_export_artifacts() -> TrainingOutputs:
 
 
 def main() -> None:
+    """Run the module entry point."""
     outputs = train_and_export_artifacts()
     rolling = outputs.metadata["valuation_evaluation"]["rolling_origin"]
     print(f"Training rows: {outputs.metadata['training_sample_size']}")

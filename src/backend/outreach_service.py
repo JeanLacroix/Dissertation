@@ -1,3 +1,4 @@
+"""Orchestrate outreach data loading, scoring, and persistence workflows."""
 from __future__ import annotations
 
 import json
@@ -60,6 +61,7 @@ DEFAULT_DEAL = DealInput(
 
 @dataclass(frozen=True)
 class DashboardContext:
+    """Bundle the data frames required to render the outreach dashboard."""
     assets: pd.DataFrame
     contacts: pd.DataFrame
     events: pd.DataFrame
@@ -71,10 +73,12 @@ class DashboardContext:
 
 
 def bootstrap_outreach_environment(force_reseed: bool = False) -> None:
+    """Bootstrap outreach environment."""
     initialize_outreach_db(force_reseed=force_reseed)
 
 
 def _clean_optional_float(value: Any, fallback: float | None = None) -> float | None:
+    """Clean optional float."""
     if value in {None, ""}:
         return fallback
     try:
@@ -89,12 +93,14 @@ def _clean_optional_float(value: Any, fallback: float | None = None) -> float | 
 
 
 def load_profile_metadata() -> dict[str, Any]:
+    """Load profile metadata."""
     if not SCBSM_PROFILE_PATH.exists():
         return {}
     return json.loads(SCBSM_PROFILE_PATH.read_text(encoding="utf-8"))
 
 
 def build_deal_input(payload: dict[str, Any] | None = None) -> DealInput:
+    """Build deal input."""
     payload = payload or {}
     defaults = DEFAULT_DEAL.as_dict()
     values = defaults | payload
@@ -134,6 +140,7 @@ def build_deal_input(payload: dict[str, Any] | None = None) -> DealInput:
 
 
 def load_dashboard_context(deal_input: dict[str, Any] | None = None) -> DashboardContext:
+    """Load dashboard context."""
     bootstrap_outreach_environment()
     assets = load_assets()
     contacts = load_contacts()
@@ -161,6 +168,7 @@ def load_dashboard_context(deal_input: dict[str, Any] | None = None) -> Dashboar
 
 
 def get_scbsm_history(events: pd.DataFrame, investor_id: str = "scbsm") -> pd.DataFrame:
+    """Return SCBSM history."""
     history = events.loc[events["investor_id"].eq(investor_id)].copy()
     if history.empty:
         return history
@@ -178,6 +186,7 @@ def build_scbsm_fiche_markdown(
     evaluation: dict[str, Any],
     history: pd.DataFrame,
 ) -> str:
+    """Build SCBSM fiche markdown."""
     criteria_lines = []
     for key in ["sector", "geography", "ticket", "cap_rate", "fund_lifecycle"]:
         criterion = evaluation["criteria"][key]
@@ -230,6 +239,7 @@ def build_scbsm_fiche_markdown(
 
 
 def get_scbsm_fiche(deal_input: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return SCBSM fiche."""
     context = load_dashboard_context(deal_input=deal_input)
     history = get_scbsm_history(context.events)
     return {
@@ -247,6 +257,7 @@ def get_scbsm_fiche(deal_input: dict[str, Any] | None = None) -> dict[str, Any]:
 
 
 def _profile_changed_fields(previous: dict[str, Any], updated: dict[str, Any]) -> list[str]:
+    """Profile changed fields."""
     changed: list[str] = []
     keys = sorted(set(previous) | set(updated))
     for key in keys:
@@ -256,6 +267,7 @@ def _profile_changed_fields(previous: dict[str, Any], updated: dict[str, Any]) -
 
 
 def save_profile_metadata(*, payload: dict[str, Any], edited_by: str, note: str = "") -> list[str]:
+    """Save profile metadata."""
     previous = load_profile_metadata()
     changed_fields = _profile_changed_fields(previous, payload)
     if not changed_fields:
@@ -272,6 +284,7 @@ def save_profile_metadata(*, payload: dict[str, Any], edited_by: str, note: str 
 
 
 def validate_profile_payload(payload: dict[str, Any]) -> list[str]:
+    """Validate profile payload."""
     missing: list[str] = []
     for field in PROFILE_REQUIRED_FIELDS:
         value = payload.get(field)
@@ -284,6 +297,7 @@ def validate_profile_payload(payload: dict[str, Any]) -> list[str]:
 
 
 def refresh_scbsm_profile_from_public_data(*, edited_by: str) -> dict[str, Any]:
+    """Refresh SCBSM profile from public data."""
     previous = load_profile_metadata()
     refresh_seed_assets()
     refreshed = previous.copy()
@@ -309,6 +323,7 @@ def log_touchpoint(
     owner: str,
     notes: str,
 ) -> str:
+    """Log touchpoint."""
     event_dt = pd.to_datetime(event_date, errors="coerce")
     if pd.isna(event_dt):
         raise ValueError("Invalid event date.")
@@ -334,6 +349,7 @@ def log_touchpoint(
 
 
 def log_override_confirmation(*, deal: DealInput, owner: str, notes: str = "") -> str:
+    """Log override confirmation."""
     return append_outreach_event(
         investor_id="scbsm",
         mandate_name=deal.mandate_name,
@@ -355,6 +371,7 @@ def log_override_confirmation(*, deal: DealInput, owner: str, notes: str = "") -
 
 
 def get_staged_mandate_payload(staged_mandate_id: str) -> dict[str, Any]:
+    """Return staged mandate payload."""
     staged = load_staged_mandates()
     if staged.empty:
         raise KeyError(f"Unknown staged mandate id: {staged_mandate_id}")
@@ -384,12 +401,14 @@ def get_staged_mandate_payload(staged_mandate_id: str) -> dict[str, Any]:
 
 
 def load_staged_mandate_into_working_set(staged_mandate_id: str) -> dict[str, Any]:
+    """Load staged mandate into working set."""
     payload = get_staged_mandate_payload(staged_mandate_id)
     mark_staged_mandate_loaded(staged_mandate_id)
     return payload
 
 
 def create_mock_mandate(*, payload: dict[str, Any], lead_banker: str = "") -> str:
+    """Create mock mandate."""
     deal = build_deal_input(payload)
     note = "Created from Streamlit UI."
     if lead_banker.strip():

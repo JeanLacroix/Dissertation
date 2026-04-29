@@ -1,3 +1,4 @@
+"""Regression tests for the comparable-retrieval service helpers."""
 from __future__ import annotations
 
 from unittest import TestCase
@@ -11,7 +12,9 @@ from src.backend.comparables_service import (
 
 
 class ComparablesServiceTests(TestCase):
+    """Exercise the comparable-retrieval service on stable regression cases."""
     def test_classify_comparable_scenarios(self) -> None:
+        """Test classify comparable scenarios."""
         scenario_a = classify_comparable_scenario(has_size=True, has_year=True, cap_rate_pct=4.74)
         scenario_b = classify_comparable_scenario(has_size=False, has_year=True, cap_rate_pct=None)
         scenario_c = classify_comparable_scenario(has_size=False, has_year=False, cap_rate_pct=None)
@@ -24,6 +27,7 @@ class ComparablesServiceTests(TestCase):
         self.assertEqual(scenario_c["scenario"], "C")
 
     def test_retrieve_comparables_keeps_exact_country_pool_when_large_enough(self) -> None:
+        """Test retrieve comparables keeps exact country pool when large enough."""
         result = retrieve_comparables(
             ComparableQuery(
                 asset_type="Office",
@@ -46,6 +50,7 @@ class ComparablesServiceTests(TestCase):
         self.assertIn("No mock or synthetic", result["dataset_status"]["dataset_note"])
 
     def test_retrieve_comparables_widens_when_exact_pool_is_thin(self) -> None:
+        """Test retrieve comparables widens when exact pool is thin."""
         result = retrieve_comparables(
             ComparableQuery(
                 asset_type="Hotel",
@@ -65,6 +70,7 @@ class ComparablesServiceTests(TestCase):
         self.assertTrue(result["dataset_status"]["coverage_flag"])
 
     def test_format_comparable_results_returns_expected_columns(self) -> None:
+        """Test format comparable results returns expected columns."""
         result = retrieve_comparables(
             ComparableQuery(
                 asset_type="Office",

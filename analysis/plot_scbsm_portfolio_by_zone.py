@@ -1,3 +1,4 @@
+"""Generate a zone-level composition chart from the SCBSM asset seed."""
 from __future__ import annotations
 
 import argparse
@@ -20,6 +21,7 @@ FIGURE_TITLE = "Figure X. SCBSM portfolio composition by zone based on extracted
 
 
 def _build_zone_summary(assets: pd.DataFrame) -> pd.DataFrame:
+    """Build zone summary."""
     frame = assets.copy()
     frame["fair_value_eur_mn"] = pd.to_numeric(frame["fair_value_eur_mn"], errors="coerce")
 
@@ -36,6 +38,7 @@ def _build_zone_summary(assets: pd.DataFrame) -> pd.DataFrame:
 
 
 def _plot_zone_fair_value(summary: pd.DataFrame, output_path: Path) -> Path:
+    """Plot zone fair value."""
     fig, ax = plt.subplots(figsize=(9.5, 6))
 
     x_labels = summary["zone"].astype(str).tolist()
@@ -95,6 +98,7 @@ def _plot_zone_fair_value(summary: pd.DataFrame, output_path: Path) -> Path:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the script."""
     parser = argparse.ArgumentParser(
         description="Plot SCBSM portfolio fair value by zone from the extracted public-disclosure asset seed."
     )
@@ -120,6 +124,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run the module entry point."""
     args = parse_args()
     ensure_outreach_dirs()
 
